@@ -175,6 +175,26 @@ void main() {
     expect(container.read(appDataProvider).value!.gearLibrary, isEmpty);
   });
 
+  test('a single-trip file (Save plan to file) loads back via merge', () async {
+    const existing = AppData(trips: [Trip(id: 't1', name: 'Home')]);
+    final (container, c) = await _boot(existing);
+    addTearDown(container.dispose);
+
+    // "Save plan to file" writes AppData(trips:[trip]); "Load a backup" merges.
+    const trip = Trip(id: 't2', name: 'Norwegen', categories: [
+      Category(id: 'c1', name: 'Schlafen', items: [Item(id: 'i1', name: 'Zelt')]),
+    ]);
+    final onDisk = AppData.fromJson(const AppData(trips: [trip]).toJson());
+    final added = await c.mergeFrom(onDisk);
+
+    expect(added, 1);
+    final trips = container.read(appDataProvider).value!.trips;
+    expect(trips.map((t) => t.id), containsAll(['t1', 't2']));
+    expect(
+        trips.firstWhere((t) => t.id == 't2').categories.single.items.single.name,
+        'Zelt');
+  });
+
   test('gear and custom lists survive JSON round-trip (export/import)', () {
     const data = AppData(
       gearLibrary: [

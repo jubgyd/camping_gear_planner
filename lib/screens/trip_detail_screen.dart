@@ -9,6 +9,7 @@ import '../models/trip.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
+import '../util/backup.dart';
 import '../util/format.dart';
 import '../util/motion.dart';
 import '../widgets/budget_gauge.dart';
@@ -219,10 +220,14 @@ class _Header extends ConsumerWidget {
                     onFlash(trip.archived ? 'Trip restored' : 'Trip archived');
                   } else if (v == 'save_list') {
                     _saveAsList(context, c, trip);
+                  } else if (v == 'save_file') {
+                    saveTripToFile(context, ref, trip);
                   }
                 },
                 itemBuilder: (_) => [
                   const PopupMenuItem(value: 'share', child: Text('📤 Share checklist')),
+                  const PopupMenuItem(
+                      value: 'save_file', child: Text('💾 Save plan to file')),
                   const PopupMenuItem(
                       value: 'save_list', child: Text('📋 Save as list')),
                   PopupMenuItem(

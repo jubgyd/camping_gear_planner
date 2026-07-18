@@ -5,6 +5,7 @@ import '../models/trip.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
+import '../util/backup.dart';
 import '../widgets/contour_header.dart';
 import '../widgets/trip_card.dart';
 import '../widgets/ui_kit.dart';
@@ -41,7 +42,16 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Camps', style: AppText.display(26, color: p.bg)),
-              _RoundIconButton(icon: Icons.add, onTap: _openAddTrip),
+              Row(
+                children: [
+                  _BackupMenuButton(
+                    onSave: () => saveBackup(context, ref),
+                    onLoad: () => loadBackup(context, ref),
+                  ),
+                  const SizedBox(width: 10),
+                  _RoundIconButton(icon: Icons.add, onTap: _openAddTrip),
+                ],
+              ),
             ],
           ),
         ),
@@ -168,6 +178,33 @@ class _ArchivedHeader extends StatelessWidget {
                 size: 18, color: p.slate),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Save / load a backup, shown as a round header button with a small menu.
+class _BackupMenuButton extends StatelessWidget {
+  const _BackupMenuButton({required this.onSave, required this.onLoad});
+  final VoidCallback onSave;
+  final VoidCallback onLoad;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Material(
+      color: Colors.white.withValues(alpha: 0.12),
+      shape: const CircleBorder(),
+      child: PopupMenuButton<String>(
+        tooltip: 'Save or load your plans',
+        icon: Icon(Icons.save_alt, size: 18, color: p.bg),
+        padding: const EdgeInsets.all(10),
+        constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+        onSelected: (v) => v == 'save' ? onSave() : onLoad(),
+        itemBuilder: (_) => const [
+          PopupMenuItem(value: 'save', child: Text('💾  Save a backup')),
+          PopupMenuItem(value: 'load', child: Text('📂  Load a backup')),
+        ],
       ),
     );
   }

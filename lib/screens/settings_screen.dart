@@ -1,16 +1,10 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/app_data.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
-import '../util/file_access.dart';
+import '../util/backup.dart';
 import '../util/motion.dart';
 import '../widgets/contour_header.dart';
 import '../widgets/ui_kit.dart';
@@ -80,12 +74,16 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     _ActionRow(
-                        label: 'Export data (JSON)',
-                        onTap: () => _export(context, ref)),
+                        label: 'Save a backup',
+                        subtitle: 'Write all your plans to a file you choose',
+                        icon: Icons.save_alt,
+                        onTap: () => saveBackup(context, ref)),
                     const SizedBox(height: 8),
                     _ActionRow(
-                        label: 'Import data (JSON)',
-                        onTap: () => _import(context, ref)),
+                        label: 'Load a backup',
+                        subtitle: 'Restore plans from a saved file',
+                        icon: Icons.folder_open,
+                        onTap: () => loadBackup(context, ref)),
                     const SizedBox(height: 8),
                     _ActionRow(
                       label: 'About',
@@ -109,72 +107,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _export(BuildContext context, WidgetRef ref) async {
-    final data = ref.read(appDataProvider).valueOrNull;
-    if (data == null) return;
-    final json = const JsonEncoder.withIndent('  ').convert(data.toJson());
-    final path = await FilePicker.platform.saveFile(
-      dialogTitle: 'Export Camp Gear data',
-      fileName: 'camp_gear_backup.json',
-      bytes: Uint8List.fromList(utf8.encode(json)),
-    );
-    if (path == null) return;
-    if (!kIsWeb && !isMobilePlatform) await saveTextFile(path, json);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Data exported')));
-    }
-  }
-
-  Future<void> _import(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom, allowedExtensions: ['json'], withData: true);
-    final file = result?.files.firstOrNull;
-    if (file == null) return;
-
-    AppData incoming;
-    try {
-      final raw = file.bytes != null
-          ? utf8.decode(file.bytes!)
-          : await readTextFile(file.path!);
-      incoming = AppData.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid or malformed JSON file')));
-      }
-      return;
-    }
-    if (!context.mounted) return;
-
-    final mode = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Import mode'),
-        content: const Text(
-            'Replace all wipes current data. Merge adds trips/templates by id and skips duplicates.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, 'merge'), child: const Text('Merge')),
-          FilledButton(
-              onPressed: () => Navigator.pop(ctx, 'replace'),
-              child: const Text('Replace all')),
-        ],
-      ),
-    );
-    if (mode == null) return;
-
-    final c = ref.read(appDataProvider.notifier);
-    final count = mode == 'replace'
-        ? await c.replaceAll(incoming)
-        : await c.mergeFrom(incoming);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              mode == 'replace' ? 'Replaced with $count trips' : 'Merged $count new trips')));
-    }
-  }
 }
 
 class _CardSection extends StatelessWidget {
@@ -239,9 +171,16 @@ class _SegRow extends StatelessWidget {
 }
 
 class _ActionRow extends StatelessWidget {
-  const _ActionRow({required this.label, required this.onTap});
+  const _ActionRow({
+    required this.label,
+    required this.onTap,
+    this.subtitle,
+    this.icon,
+  });
   final String label;
   final VoidCallback onTap;
+  final String? subtitle;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -250,9 +189,23 @@ class _ActionRow extends StatelessWidget {
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppText.body(14, color: p.ink)),
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: p.slate),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppText.body(14, color: p.ink)),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle!, style: AppText.body(12, color: p.slate)),
+                ],
+              ],
+            ),
+          ),
           Icon(Icons.chevron_right, size: 18, color: p.slate),
         ],
       ),
