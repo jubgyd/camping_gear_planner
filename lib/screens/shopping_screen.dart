@@ -12,6 +12,7 @@ import '../theme/app_text.dart';
 import '../util/format.dart';
 import '../util/motion.dart';
 import '../widgets/contour_header.dart';
+import '../widgets/product_thumb.dart';
 import '../widgets/ui_kit.dart';
 import 'item_edit_screen.dart';
 
@@ -336,6 +337,10 @@ class _LineRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
+          if (line.imageFile != null) ...[
+            ProductThumb(line.imageFile, size: 40),
+            const SizedBox(width: 12),
+          ],
           Expanded(
             child: GestureDetector(
               onTap: onEdit,

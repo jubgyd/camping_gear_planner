@@ -11,6 +11,7 @@ class ManualEntry {
     this.pricePerUnit,
     this.quantity = 1,
     this.bought = false,
+    this.imageFile,
   });
 
   final String id;
@@ -21,6 +22,9 @@ class ManualEntry {
   final double? pricePerUnit;
   final int quantity;
   final bool bought;
+
+  /// Filename of a downloaded product image on disk (see ImageStore), or null.
+  final String? imageFile;
 
   int? get totalWeightGrams =>
       weightGrams == null ? null : weightGrams! * quantity;
@@ -35,6 +39,7 @@ class ManualEntry {
     double? Function()? pricePerUnit,
     int? quantity,
     bool? bought,
+    String? Function()? imageFile,
   }) {
     return ManualEntry(
       id: id,
@@ -45,6 +50,7 @@ class ManualEntry {
       pricePerUnit: pricePerUnit != null ? pricePerUnit() : this.pricePerUnit,
       quantity: quantity ?? this.quantity,
       bought: bought ?? this.bought,
+      imageFile: imageFile != null ? imageFile() : this.imageFile,
     );
   }
 
@@ -57,6 +63,7 @@ class ManualEntry {
         'pricePerUnit': pricePerUnit,
         'quantity': quantity,
         'bought': bought,
+        'imageFile': imageFile,
       };
 
   factory ManualEntry.fromJson(Map<String, dynamic> json) => ManualEntry(
@@ -68,5 +75,6 @@ class ManualEntry {
         pricePerUnit: (json['pricePerUnit'] as num?)?.toDouble(),
         quantity: (json['quantity'] as num?)?.toInt() ?? 1,
         bought: json['bought'] as bool? ?? false,
+        imageFile: json['imageFile'] as String?,
       );
 }

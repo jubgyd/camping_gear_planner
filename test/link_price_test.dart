@@ -87,4 +87,53 @@ void main() {
       expect(info.price, isNull);
     });
   });
+
+  group('image extraction', () {
+    const svc = LinkPriceService();
+
+    test('og:image', () {
+      final info = svc.extractFrom('''
+        <html><head>
+          <meta property="og:image" content="https://cdn.shop/tent.jpg">
+        </head><body></body></html>
+      ''');
+      expect(info.hasImage, isTrue);
+      expect(info.imageUrl, 'https://cdn.shop/tent.jpg');
+    });
+
+    test('falls back to twitter:image', () {
+      final info = svc.extractFrom('''
+        <html><head>
+          <meta name="twitter:image" content="https://cdn.shop/bag.png">
+        </head><body></body></html>
+      ''');
+      expect(info.imageUrl, 'https://cdn.shop/bag.png');
+    });
+
+    test('JSON-LD image as string or ImageObject', () {
+      final asString = svc.extractFrom('''
+        <html><head>
+          <script type="application/ld+json">
+          {"@type":"Product","image":"https://cdn.shop/a.jpg"}
+          </script>
+        </head><body></body></html>
+      ''');
+      expect(asString.imageUrl, 'https://cdn.shop/a.jpg');
+
+      final asObject = svc.extractFrom('''
+        <html><head>
+          <script type="application/ld+json">
+          {"@type":"Product","image":{"@type":"ImageObject","url":"https://cdn.shop/b.jpg"}}
+          </script>
+        </head><body></body></html>
+      ''');
+      expect(asObject.imageUrl, 'https://cdn.shop/b.jpg');
+    });
+
+    test('no image present yields hasImage=false', () {
+      final info = svc.extractFrom('<html><body><p>hi</p></body></html>');
+      expect(info.hasImage, isFalse);
+      expect(info.imageUrl, isNull);
+    });
+  });
 }

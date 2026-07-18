@@ -10,11 +10,13 @@ import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
 import '../util/format.dart';
+import '../util/image_store.dart';
 import '../util/link_price.dart';
 import '../util/motion.dart';
+import '../widgets/product_thumb.dart';
 import '../widgets/ui_kit.dart';
 
-enum _Fetch { idle, loading, found, empty, error }
+enum _Fetch { idle, loading, found, image, empty, error }
 
 /// Add / edit an item (design plan Item Edit): name, status, link + price-fetch,
 /// quantity, price/weight, note. Serves both trip items and manual entries.
@@ -53,6 +55,12 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
   late ItemStatus _status;
   _Fetch _fetch = _Fetch.idle;
 
+  /// Filename of the product image on disk (see ImageStore), or null.
+  String? _imageFile;
+
+  /// Stable basename for images fetched in this editor session.
+  final String _imgBase = const Uuid().v4();
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +75,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
         text: (e?.weightGrams ?? m?.weightGrams)?.toString() ?? '');
     _quantity = e?.quantity ?? m?.quantity ?? 1;
     _status = e?.status ?? ItemStatus.needToBuy;
+    _imageFile = e?.imageFile ?? m?.imageFile;
   }
 
   @override
@@ -80,29 +89,50 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
   Future<void> _fetchLinkInfo() async {
     if (_link.text.trim().isEmpty) return;
     setState(() => _fetch = _Fetch.loading);
-    // Downloads the product page and reads og:price / schema.org / microdata.
-    // Fails gracefully: bot-blocking or JS-rendered shops yield no price.
+    // Downloads the product page and reads og:price / schema.org / microdata,
+    // plus the og:image product picture. Fails gracefully: bot-blocking or
+    // JS-rendered shops may yield no price and/or no image.
     try {
       final info = await const LinkPriceService().fetch(_link.text);
       if (!mounted) return;
-      if (info.hasPrice) {
-        setState(() {
-          _price.text = info.price!.toStringAsFixed(2);
-          // Offer the shop's product name if we don't have one yet.
-          if (_name.text.trim().isEmpty &&
-              info.title != null &&
-              info.title!.trim().isNotEmpty) {
-            _name.text = info.title!.trim();
-          }
-          _fetch = _Fetch.found;
-        });
-      } else {
-        setState(() => _fetch = _Fetch.empty);
+
+      // Download the product image (independent of whether a price was found).
+      String? newImage;
+      if (info.hasImage) {
+        newImage = await ImageStore.instance
+            .download(info.imageUrl!, basename: _imgBase);
       }
+      if (!mounted) return;
+
+      setState(() {
+        if (info.hasPrice) _price.text = info.price!.toStringAsFixed(2);
+        // Offer the shop's product name if we don't have one yet.
+        if (_name.text.trim().isEmpty &&
+            info.title != null &&
+            info.title!.trim().isNotEmpty) {
+          _name.text = info.title!.trim();
+        }
+        if (newImage != null) {
+          final old = _imageFile;
+          _imageFile = newImage;
+          if (old != null && old != newImage) {
+            ImageStore.instance.delete(old);
+          }
+        }
+        _fetch = info.hasPrice
+            ? _Fetch.found
+            : (newImage != null ? _Fetch.image : _Fetch.empty);
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() => _fetch = _Fetch.error);
     }
+  }
+
+  void _removeImage() {
+    final old = _imageFile;
+    setState(() => _imageFile = null);
+    ImageStore.instance.delete(old);
   }
 
   void _save() {
@@ -121,6 +151,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
         pricePerUnit: () => price,
         weightGrams: () => weight,
         quantity: _quantity,
+        imageFile: () => _imageFile,
       ));
       Navigator.of(context).pop();
       return;
@@ -136,6 +167,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
       weightGrams: weight,
       quantity: _quantity,
       pricePerUnit: price,
+      imageFile: _imageFile,
     );
     if (widget.existing == null) {
       c.addItem(widget.tripId!, widget.categoryId!, item);
@@ -172,6 +204,8 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
     );
     if (ok != true) return;
     final c = ref.read(appDataProvider.notifier);
+    // Remove the on-disk image with the item so it doesn't orphan.
+    ImageStore.instance.delete(_imageFile);
     if (widget.isManual) {
       c.removeManualEntry(widget.manualEntry!.id);
     } else {
@@ -259,6 +293,12 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                         child: Text(context.t('item_fetch_found'),
                             style: AppText.body(12, color: p.moss)),
                       ),
+                    if (_fetch == _Fetch.image)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(context.t('item_fetch_image'),
+                            style: AppText.body(12, color: p.moss)),
+                      ),
                     if (_fetch == _Fetch.empty)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
@@ -271,6 +311,23 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                         child: Text(
                             context.t('item_fetch_error'),
                             style: AppText.body(12, color: p.inkMuted)),
+                      ),
+                    if (_imageFile != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Row(
+                          children: [
+                            ProductThumb(_imageFile, size: 64, radius: 10),
+                            const SizedBox(width: 12),
+                            TextButton.icon(
+                              onPressed: _removeImage,
+                              icon: Icon(Icons.close,
+                                  size: 16, color: p.inkMuted),
+                              label: Text(context.t('item_image_remove'),
+                                  style: AppText.body(13, color: p.inkMuted)),
+                            ),
+                          ],
+                        ),
                       ),
                     const SizedBox(height: 22),
                     SectionLabel(context.t('item_quantity')),

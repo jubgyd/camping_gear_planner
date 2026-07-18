@@ -5,10 +5,13 @@ import 'app.dart';
 import 'l10n/app_strings.dart';
 import 'state/app_controller.dart';
 import 'theme/app_theme.dart';
+import 'util/image_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final strings = await AppStrings.load();
+  // Resolve the product-image directory once so widgets can read paths sync.
+  await ImageStore.instance.init();
   runApp(ProviderScope(child: CampGearApp(strings: strings)));
 }
 

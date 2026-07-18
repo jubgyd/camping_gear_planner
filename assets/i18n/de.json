@@ -72,6 +72,8 @@
   "item_delete_confirm_title": "Artikel löschen?",
   "item_delete_confirm_body": "{name} wird entfernt. Das kann nicht rückgängig gemacht werden.",
   "item_fetch_found": "✓ Preis gefunden und unten eingetragen",
+  "item_fetch_image": "✓ Produktbild hinzugefügt",
+  "item_image_remove": "Bild entfernen",
   "item_fetch_none": "Kein Preis auf dieser Seite gefunden – bitte manuell eingeben",
   "item_fetch_error": "Seite nicht erreichbar – prüfe den Link oder gib den Preis manuell ein",
   "item_fetching": "Wird geladen…",

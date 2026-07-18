@@ -12,6 +12,7 @@ class ShoppingLine {
     required this.quantity,
     required this.totalPrice,
     required this.totalWeightGrams,
+    this.imageFile,
     this.tripId,
     this.categoryId,
     this.manualId,
@@ -24,6 +25,7 @@ class ShoppingLine {
   final int quantity;
   final double? totalPrice;
   final int? totalWeightGrams;
+  final String? imageFile;
 
   final String? tripId;
   final String? categoryId;
@@ -68,6 +70,7 @@ List<ShoppingGroup> buildShoppingGroups(AppData data, ShoppingSort sort) {
               totalPrice: it.totalPrice,
               totalWeightGrams:
                   it.weightGrams == null ? null : it.totalWeightGrams,
+              imageFile: it.imageFile,
               tripId: trip.id,
               categoryId: cat.id,
             ));
@@ -85,6 +88,7 @@ List<ShoppingGroup> buildShoppingGroups(AppData data, ShoppingSort sort) {
             quantity: e.quantity,
             totalPrice: e.totalPrice,
             totalWeightGrams: e.totalWeightGrams,
+            imageFile: e.imageFile,
             manualId: e.id,
           ))
       .toList();

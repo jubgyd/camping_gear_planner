@@ -92,7 +92,8 @@ void main() {
                   name: 'Tent',
                   status: ItemStatus.owned,
                   quantity: 2,
-                  pricePerUnit: 12.5),
+                  pricePerUnit: 12.5,
+                  imageFile: 'i1.jpg'),
             ]),
           ],
         ),
@@ -105,6 +106,7 @@ void main() {
       final item = t.categories.single.items.single;
       expect(item.quantity, 2);
       expect(item.totalPrice, 25.0);
+      expect(item.imageFile, 'i1.jpg');
       expect(restored.schemaVersion, AppData.currentSchemaVersion);
     });
   });

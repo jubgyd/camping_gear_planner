@@ -4,14 +4,20 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html;
 import 'package:http/http.dart' as http;
 
-/// What a product page yielded: a price (if one was found) and the title.
+/// What a product page yielded: a price (if one was found), the title, and a
+/// product image URL (if one was advertised).
 class LinkInfo {
-  const LinkInfo({this.price, this.currency, this.title});
+  const LinkInfo({this.price, this.currency, this.title, this.imageUrl});
   final double? price;
   final String? currency;
   final String? title;
 
+  /// Absolute URL of the product image (og:image / twitter:image / JSON-LD),
+  /// or null if the page advertised none.
+  final String? imageUrl;
+
   bool get hasPrice => price != null;
+  bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
 }
 
 /// Fetches a product page and tries to read its price + title from standard
@@ -41,11 +47,22 @@ class LinkPriceService {
         .timeout(const Duration(seconds: 12));
 
     if (res.statusCode != 200) return const LinkInfo();
-    return extractFrom(res.body);
+    // Resolve a possibly-relative image URL against the page's own URL.
+    final info = extractFrom(res.body);
+    if (info.imageUrl != null) {
+      final abs = uri.resolve(info.imageUrl!).toString();
+      return LinkInfo(
+          price: info.price,
+          currency: info.currency,
+          title: info.title,
+          imageUrl: abs);
+    }
+    return info;
   }
 
-  /// Reads price + title out of a page's HTML. Split from [fetch] so the
-  /// extraction can be tested without a network round-trip.
+  /// Reads price + title + image out of a page's HTML. Split from [fetch] so the
+  /// extraction can be tested without a network round-trip. The [imageUrl] here
+  /// may be relative; [fetch] resolves it against the page URL.
   LinkInfo extractFrom(String body) {
     final doc = html.parse(body);
     final price = _fromMeta(doc) ?? _fromJsonLd(doc) ?? _fromMicrodata(doc);
@@ -53,7 +70,87 @@ class LinkPriceService {
       price: price?.$1,
       currency: price?.$2 ?? _currencyMeta(doc),
       title: _title(doc),
+      imageUrl: _image(doc),
     );
+  }
+
+  // --- Image -------------------------------------------------------------
+
+  String? _image(Document doc) {
+    // Open Graph / Twitter card images are near-universal on product pages.
+    for (final prop in const [
+      'og:image',
+      'og:image:secure_url',
+      'og:image:url',
+      'twitter:image',
+      'twitter:image:src',
+    ]) {
+      final v = _metaContent(doc, property: prop);
+      if (v != null && v.trim().isNotEmpty) return v.trim();
+    }
+    // schema.org JSON-LD `image` (string, array, or { url }).
+    final ld = _imageFromJsonLd(doc);
+    if (ld != null) return ld;
+    // Microdata <... itemprop="image">.
+    final ip = doc.querySelector('[itemprop="image"]');
+    if (ip != null) {
+      final v = ip.attributes['content'] ??
+          ip.attributes['src'] ??
+          ip.attributes['href'];
+      if (v != null && v.trim().isNotEmpty) return v.trim();
+    }
+    return null;
+  }
+
+  String? _imageFromJsonLd(Document doc) {
+    for (final script
+        in doc.querySelectorAll('script[type="application/ld+json"]')) {
+      final raw = script.text.trim();
+      if (raw.isEmpty) continue;
+      dynamic data;
+      try {
+        data = jsonDecode(raw);
+      } catch (_) {
+        continue;
+      }
+      final hit = _searchImage(data);
+      if (hit != null) return hit;
+    }
+    return null;
+  }
+
+  String? _searchImage(dynamic node) {
+    if (node is List) {
+      for (final e in node) {
+        final r = _searchImage(e);
+        if (r != null) return r;
+      }
+      return null;
+    }
+    if (node is Map) {
+      final img = node['image'];
+      final resolved = _imageValue(img);
+      if (resolved != null) return resolved;
+      for (final v in node.values) {
+        if (v is Map || v is List) {
+          final r = _searchImage(v);
+          if (r != null) return r;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// A JSON-LD `image` can be a URL string, a list of them, or an ImageObject
+  /// with a `url` field.
+  String? _imageValue(dynamic img) {
+    if (img is String && img.trim().isNotEmpty) return img.trim();
+    if (img is List && img.isNotEmpty) return _imageValue(img.first);
+    if (img is Map) {
+      final u = img['url'] ?? img['contentUrl'];
+      if (u is String && u.trim().isNotEmpty) return u.trim();
+    }
+    return null;
   }
 
   // --- URL ---------------------------------------------------------------

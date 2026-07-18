@@ -17,6 +17,7 @@ import '../util/motion.dart';
 import 'add_trip_screen.dart';
 import '../widgets/budget_gauge.dart';
 import '../widgets/contour_header.dart';
+import '../widgets/product_thumb.dart';
 import '../widgets/progress_ridge.dart';
 import '../widgets/status_dot.dart';
 import '../widgets/ui_kit.dart';
@@ -608,6 +609,13 @@ class _ItemRow extends ConsumerWidget {
                   c.setItemStatus(trip.id, categoryId, item.id, _cycle[item.status]!),
             ),
             const SizedBox(width: 12),
+            if (item.imageFile != null) ...[
+              Opacity(
+                opacity: na ? 0.45 : 1,
+                child: ProductThumb(item.imageFile, size: 38),
+              ),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: InkWell(
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(

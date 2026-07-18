@@ -15,6 +15,7 @@ class Item {
     this.weightGrams,
     this.quantity = 1,
     this.pricePerUnit,
+    this.imageFile,
   });
 
   final String id;
@@ -24,6 +25,9 @@ class Item {
   /// Optional URL; tapping it opens the browser (GDD §5.6).
   final String? link;
   final ItemStatus status;
+
+  /// Filename of a downloaded product image on disk (see ImageStore), or null.
+  final String? imageFile;
 
   /// Ties back to the template item this was created from, if any (GDD §4).
   final String? sourceTemplateId;
@@ -53,6 +57,7 @@ class Item {
     int? Function()? weightGrams,
     int? quantity,
     double? Function()? pricePerUnit,
+    String? Function()? imageFile,
   }) {
     return Item(
       id: id,
@@ -65,6 +70,7 @@ class Item {
       weightGrams: weightGrams != null ? weightGrams() : this.weightGrams,
       quantity: quantity ?? this.quantity,
       pricePerUnit: pricePerUnit != null ? pricePerUnit() : this.pricePerUnit,
+      imageFile: imageFile != null ? imageFile() : this.imageFile,
     );
   }
 
@@ -78,6 +84,7 @@ class Item {
         'weightGrams': weightGrams,
         'quantity': quantity,
         'pricePerUnit': pricePerUnit,
+        'imageFile': imageFile,
       };
 
   factory Item.fromJson(Map<String, dynamic> json) => Item(
@@ -90,5 +97,6 @@ class Item {
         weightGrams: (json['weightGrams'] as num?)?.toInt(),
         quantity: (json['quantity'] as num?)?.toInt() ?? 1,
         pricePerUnit: (json['pricePerUnit'] as num?)?.toDouble(),
+        imageFile: json['imageFile'] as String?,
       );
 }
