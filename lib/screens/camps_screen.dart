@@ -70,7 +70,9 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 children: [
                   ContentColumn(
-                    maxWidth: 900,
+                    // 430 + 12 + 430 — the exact width of the two-card grid, so
+                    // the tab bar lines up with the cards below it.
+                    maxWidth: 872,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -137,8 +139,10 @@ class _TripGrid extends StatelessWidget {
         ],
       );
     }
-    // Two-column masonry-ish grid on wide screens.
+    // Two-column masonry-ish grid on wide screens, centered so a lone card (or
+    // a short final row) sits in the middle rather than hugging the left edge.
     return Wrap(
+      alignment: WrapAlignment.center,
       spacing: 12,
       runSpacing: 12,
       children: [
