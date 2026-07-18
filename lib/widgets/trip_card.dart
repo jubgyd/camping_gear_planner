@@ -5,6 +5,7 @@ import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
 import '../util/format.dart';
 import 'budget_gauge.dart';
+import 'country_flag.dart';
 import 'progress_ridge.dart';
 import 'ui_kit.dart';
 
@@ -35,9 +36,9 @@ class TripCard extends StatelessWidget {
               children: [
                 if (trip.country != null)
                   Padding(
-                    padding: const EdgeInsets.only(right: 10, top: 2),
-                    child: Text(trip.country!.flag,
-                        style: const TextStyle(fontSize: 24)),
+                    padding: const EdgeInsets.only(right: 10, top: 3),
+                    child: CountryFlag(trip.country!.code,
+                        width: 30, height: 20),
                   ),
                 Expanded(
                   child: Column(

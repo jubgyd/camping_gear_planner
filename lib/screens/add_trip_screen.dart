@@ -11,6 +11,7 @@ import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
 import '../util/format.dart';
 import '../util/motion.dart';
+import '../widgets/country_flag.dart';
 import '../widgets/ui_kit.dart';
 import 'trip_detail_screen.dart';
 
@@ -403,8 +404,8 @@ class _CountryGrid extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text(c.flag, style: const TextStyle(fontSize: 22)),
-              const SizedBox(height: 2),
+              CountryFlag(c.code, width: 32, height: 21),
+              const SizedBox(height: 4),
               Text(c.code,
                   style: AppText.mono(9,
                       color: active ? p.rust : p.inkMuted)),
