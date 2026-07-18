@@ -9,10 +9,11 @@ import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
 import '../util/format.dart';
+import '../util/link_price.dart';
 import '../util/motion.dart';
 import '../widgets/ui_kit.dart';
 
-enum _Fetch { idle, loading, found, empty }
+enum _Fetch { idle, loading, found, empty, error }
 
 /// Add / edit an item (design plan Item Edit): name, status, link + price-fetch,
 /// quantity, price/weight, note. Serves both trip items and manual entries.
@@ -75,24 +76,32 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
     super.dispose();
   }
 
-  void _fetchLinkInfo() {
+  Future<void> _fetchLinkInfo() async {
     if (_link.text.trim().isEmpty) return;
     setState(() => _fetch = _Fetch.loading);
-    // Simulated og:price / schema.org lookup (design plan `fetchLinkInfo`).
-    // A real version would go through a LinkMetadataProvider.
-    Future.delayed(const Duration(milliseconds: 900), () {
+    // Downloads the product page and reads og:price / schema.org / microdata.
+    // Fails gracefully: bot-blocking or JS-rendered shops yield no price.
+    try {
+      final info = await const LinkPriceService().fetch(_link.text);
       if (!mounted) return;
-      final hash = _link.text.codeUnits.fold<int>(0, (s, c) => s + c);
-      if (hash % 5 != 0) {
-        final price = (10 + (hash % 90) + 0.95).toStringAsFixed(2);
+      if (info.hasPrice) {
         setState(() {
-          _price.text = price;
+          _price.text = info.price!.toStringAsFixed(2);
+          // Offer the shop's product name if we don't have one yet.
+          if (_name.text.trim().isEmpty &&
+              info.title != null &&
+              info.title!.trim().isNotEmpty) {
+            _name.text = info.title!.trim();
+          }
           _fetch = _Fetch.found;
         });
       } else {
         setState(() => _fetch = _Fetch.empty);
       }
-    });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _fetch = _Fetch.error);
+    }
   }
 
   void _save() {
@@ -218,6 +227,13 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Text('No price found on this page — enter it manually',
+                            style: AppText.body(12, color: p.inkMuted)),
+                      ),
+                    if (_fetch == _Fetch.error)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                            "Couldn't reach that page — check the link or enter the price manually",
                             style: AppText.body(12, color: p.inkMuted)),
                       ),
                     const SizedBox(height: 22),

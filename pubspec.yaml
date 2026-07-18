@@ -18,6 +18,8 @@ dependencies:
   url_launcher: ^6.3.0       # open item links in browser (GDD §5.6)
   intl: ^0.19.0              # date formatting
   collection: ^1.18.0        # firstOrNull and friends
+  http: ^1.2.0               # fetch product pages for price lookup (GDD §5.6)
+  html: ^0.15.4              # parse fetched HTML for og:price / schema.org price
   google_fonts: ^6.2.1       # Fraunces / Inter / JetBrains Mono
 
 dev_dependencies:
