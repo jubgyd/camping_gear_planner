@@ -12,6 +12,7 @@ import '../theme/app_text.dart';
 import '../util/backup.dart';
 import '../util/format.dart';
 import '../util/motion.dart';
+import 'add_trip_screen.dart';
 import '../widgets/budget_gauge.dart';
 import '../widgets/contour_header.dart';
 import '../widgets/progress_ridge.dart';
@@ -212,7 +213,10 @@ class _Header extends ConsumerWidget {
               PopupMenuButton<String>(
                 icon: Icon(Icons.more_horiz, color: p.onHeader, size: 20),
                 onSelected: (v) {
-                  if (v == 'share') {
+                  if (v == 'edit') {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => AddTripScreen(existing: trip)));
+                  } else if (v == 'share') {
                     Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => ShareScreen(tripId: trip.id)));
                   } else if (v == 'archive') {
@@ -225,6 +229,7 @@ class _Header extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (_) => [
+                  const PopupMenuItem(value: 'edit', child: Text('✏️ Edit trip')),
                   const PopupMenuItem(value: 'share', child: Text('📤 Share checklist')),
                   const PopupMenuItem(
                       value: 'save_file', child: Text('💾 Save plan to file')),

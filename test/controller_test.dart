@@ -175,6 +175,41 @@ void main() {
     expect(container.read(appDataProvider).value!.gearLibrary, isEmpty);
   });
 
+  test('editing a trip updates its metadata but keeps the checklist', () async {
+    const seed = AppData(trips: [
+      Trip(id: 't1', name: 'Old', countryCode: 'DE', seasonKey: 'summer',
+          categories: [
+            Category(id: 'c1', name: 'Schlafen', items: [
+              Item(id: 'i1', name: 'Zelt'),
+            ]),
+          ]),
+    ]);
+    final (container, c) = await _boot(seed);
+    addTearDown(container.dispose);
+
+    await c.updateTripMeta('t1',
+        name: 'Norwegen',
+        subtitle: 'Duo · Herbst',
+        countryCode: 'NO',
+        seasonKey: 'autumn',
+        campStyleKey: 'wild',
+        typeKey: 'duo',
+        budget: 250,
+        startDate: null,
+        endDate: null,
+        calendarSynced: false,
+        reminderDaysBefore: null);
+
+    final t = container.read(appDataProvider).value!.trips.single;
+    expect(t.name, 'Norwegen');
+    expect(t.countryCode, 'NO');
+    expect(t.seasonKey, 'autumn');
+    expect(t.typeKey, 'duo');
+    expect(t.budget, 250);
+    // The checklist must survive an edit.
+    expect(t.categories.single.items.single.name, 'Zelt');
+  });
+
   test('a single-trip file (Save plan to file) loads back via merge', () async {
     const existing = AppData(trips: [Trip(id: 't1', name: 'Home')]);
     final (container, c) = await _boot(existing);

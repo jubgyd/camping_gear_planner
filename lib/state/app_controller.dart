@@ -109,6 +109,36 @@ class AppController extends AsyncNotifier<AppData> {
   Future<void> setReminderDays(String tripId, int? days) => _update((d) =>
       _mapTrip(d, tripId, (t) => t.copyWith(reminderDaysBefore: () => days)));
 
+  /// Replace a trip's editable metadata in one shot (the edit form). Keeps the
+  /// checklist (categories) and archived flag untouched.
+  Future<void> updateTripMeta(
+    String tripId, {
+    required String name,
+    required String subtitle,
+    required String? countryCode,
+    required String? seasonKey,
+    required String? campStyleKey,
+    required String typeKey,
+    required double? budget,
+    required DateTime? startDate,
+    required DateTime? endDate,
+    required bool calendarSynced,
+    required int? reminderDaysBefore,
+  }) =>
+      _update((d) => _mapTrip(d, tripId, (t) => t.copyWith(
+            name: name,
+            subtitle: subtitle,
+            countryCode: () => countryCode,
+            seasonKey: () => seasonKey,
+            campStyleKey: () => campStyleKey,
+            typeKey: typeKey,
+            budget: () => budget,
+            startDate: () => startDate,
+            endDate: () => endDate,
+            calendarSynced: calendarSynced,
+            reminderDaysBefore: () => reminderDaysBefore,
+          )));
+
   // ---- Categories & items ------------------------------------------------
 
   Future<void> addCategory(String tripId, String name) =>

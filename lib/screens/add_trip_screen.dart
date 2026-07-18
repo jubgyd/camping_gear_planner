@@ -13,10 +13,17 @@ import '../util/motion.dart';
 import '../widgets/ui_kit.dart';
 import 'trip_detail_screen.dart';
 
-/// Full "New trip" form (design plan Add Trip). Deliberately not a boxed form:
-/// a big headline name input, then chip/grid selectors for the metadata.
+/// Full trip form (design plan Add Trip). Deliberately not a boxed form: a big
+/// headline name input, then chip/grid selectors for the metadata. Doubles as
+/// the edit form when [existing] is supplied — same fields, prefilled, saving
+/// back over the same trip (checklist preserved).
 class AddTripScreen extends ConsumerStatefulWidget {
-  const AddTripScreen({super.key});
+  const AddTripScreen({super.key, this.existing});
+
+  /// When non-null, the form edits this trip instead of creating a new one.
+  final Trip? existing;
+
+  bool get isEditing => existing != null;
 
   @override
   ConsumerState<AddTripScreen> createState() => _AddTripScreenState();
@@ -34,6 +41,25 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
   bool _reminderOn = false;
   int _reminderDays = 3;
   PackingList? _startList; // null = blank checklist
+
+  @override
+  void initState() {
+    super.initState();
+    final t = widget.existing;
+    if (t != null) {
+      _name.text = t.name;
+      if (t.budget != null) _budget.text = t.budget!.toStringAsFixed(0);
+      _country = t.country;
+      _season = t.season;
+      _style = t.campStyle;
+      _type = t.typeKey;
+      _start = t.startDate;
+      _end = t.endDate;
+      _addCalendar = t.calendarSynced;
+      _reminderOn = t.reminderDaysBefore != null;
+      _reminderDays = t.reminderDaysBefore ?? 3;
+    }
+  }
 
   @override
   void dispose() {
@@ -70,21 +96,48 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
   void _save() {
     if (!_valid) return;
     final parsedBudget = double.tryParse(_budget.text.trim());
+    final budget =
+        (parsedBudget != null && parsedBudget > 0) ? parsedBudget : null;
+    final subtitle = '${TripType.byKey(_type)!.label} · ${_season!.label}';
+    final notifier = ref.read(appDataProvider.notifier);
+
+    // Edit mode: update the existing trip in place and return to it.
+    final editing = widget.existing;
+    if (editing != null) {
+      notifier.updateTripMeta(
+        editing.id,
+        name: _name.text.trim(),
+        subtitle: subtitle,
+        countryCode: _country!.code,
+        seasonKey: _season!.key,
+        campStyleKey: _style!.key,
+        typeKey: _type,
+        budget: budget,
+        startDate: _start,
+        endDate: _end ?? _start,
+        calendarSynced: _start != null && _addCalendar,
+        reminderDaysBefore:
+            (_start != null && _reminderOn) ? _reminderDays : null,
+      );
+      Navigator.of(context).pop();
+      return;
+    }
+
+    // Create mode.
     final trip = Trip(
       id: 't${const Uuid().v4()}',
       name: _name.text.trim(),
-      subtitle: '${TripType.byKey(_type)!.label} · ${_season!.label}',
+      subtitle: subtitle,
       countryCode: _country!.code,
       seasonKey: _season!.key,
       campStyleKey: _style!.key,
       typeKey: _type,
-      budget: (parsedBudget != null && parsedBudget > 0) ? parsedBudget : null,
+      budget: budget,
       startDate: _start,
       endDate: _end ?? _start,
       calendarSynced: _start != null && _addCalendar,
       reminderDaysBefore: (_start != null && _reminderOn) ? _reminderDays : null,
     );
-    final notifier = ref.read(appDataProvider.notifier);
     notifier.addTrip(trip);
     if (_startList != null) {
       notifier.applyListToTrip(trip.id, _startList!);
@@ -110,7 +163,7 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                       icon: Icon(Icons.close, color: p.ink),
                       onPressed: () => Navigator.of(context).pop()),
                   const Spacer(),
-                  Text('NEW TRIP',
+                  Text(widget.isEditing ? 'EDIT TRIP' : 'NEW TRIP',
                       style: AppText.mono(12, color: p.inkMuted, letterSpacing: 1.5)),
                   const Spacer(),
                   TextButton(
@@ -203,18 +256,22 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                     const SectionLabel('Budget (optional)'),
                     const SizedBox(height: 12),
                     _BudgetField(controller: _budget),
-                    const SizedBox(height: 28),
-                    const SectionLabel('Start from'),
-                    const SizedBox(height: 12),
-                    _StartFromChips(
-                      lists: ref.watch(availableListsProvider),
-                      selected: _startList,
-                      onSelect: (l) => setState(() => _startList = l),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                        'A list seeds your checklist; you can still add from suggestions or your gear afterward.',
-                        style: AppText.body(12, color: p.slate, height: 1.5)),
+                    // "Start from" seeds a checklist — creation only; editing a
+                    // trip must not clobber the existing checklist.
+                    if (!widget.isEditing) ...[
+                      const SizedBox(height: 28),
+                      const SectionLabel('Start from'),
+                      const SizedBox(height: 12),
+                      _StartFromChips(
+                        lists: ref.watch(availableListsProvider),
+                        selected: _startList,
+                        onSelect: (l) => setState(() => _startList = l),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                          'A list seeds your checklist; you can still add from suggestions or your gear afterward.',
+                          style: AppText.body(12, color: p.slate, height: 1.5)),
+                    ],
                   ],
                 ),
               ),
