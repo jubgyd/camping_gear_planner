@@ -251,7 +251,13 @@ void main() {
         startDate: null,
         endDate: null,
         calendarSynced: false,
-        reminderDaysBefore: null);
+        reminderDaysBefore: null,
+        location: 'Hardangervidda',
+        locationLink: 'https://example.com/camp',
+        weather: 'cold nights ~0°C',
+        partySize: 3,
+        notes: 'meet at 8am',
+        );
 
     final t = container.read(appDataProvider).value!.trips.single;
     expect(t.name, 'Norwegen');
@@ -259,6 +265,11 @@ void main() {
     expect(t.seasonKey, 'autumn');
     expect(t.typeKey, 'duo');
     expect(t.budget, 250);
+    expect(t.location, 'Hardangervidda');
+    expect(t.locationLink, 'https://example.com/camp');
+    expect(t.weather, 'cold nights ~0°C');
+    expect(t.partySize, 3);
+    expect(t.notes, 'meet at 8am');
     // The checklist must survive an edit.
     expect(t.categories.single.items.single.name, 'Zelt');
   });
@@ -292,6 +303,26 @@ void main() {
     final restored = AppData.fromJson(data.toJson());
     expect(restored.gearLibrary.single.name, 'Zelt');
     expect(restored.gearLibrary.single.weightGrams, 1400);
-    expect(restored.schemaVersion, 3);
+    expect(restored.schemaVersion, 4);
+  });
+
+  test('new trip planning fields survive JSON round-trip', () {
+    const data = AppData(trips: [
+      Trip(
+        id: 't1',
+        name: 'Norwegen',
+        location: 'Hardangervidda',
+        locationLink: 'https://example.com/camp',
+        weather: 'cold nights ~0°C',
+        partySize: 3,
+        notes: 'meet at 8am',
+      ),
+    ]);
+    final t = AppData.fromJson(data.toJson()).trips.single;
+    expect(t.location, 'Hardangervidda');
+    expect(t.locationLink, 'https://example.com/camp');
+    expect(t.weather, 'cold nights ~0°C');
+    expect(t.partySize, 3);
+    expect(t.notes, 'meet at 8am');
   });
 }

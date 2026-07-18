@@ -40,7 +40,7 @@ class AppData {
     this.settings = const AppSettings(),
   });
 
-  static const int currentSchemaVersion = 3;
+  static const int currentSchemaVersion = 4;
 
   final int schemaVersion;
   final DateTime? exportedAt;

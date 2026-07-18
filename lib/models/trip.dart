@@ -20,6 +20,11 @@ class Trip {
     this.calendarSynced = false,
     this.reminderDaysBefore,
     this.archived = false,
+    this.location = '',
+    this.locationLink,
+    this.weather = '',
+    this.partySize,
+    this.notes = '',
     this.categories = const [],
   });
 
@@ -38,6 +43,13 @@ class Trip {
   final bool calendarSynced;
   final int? reminderDaysBefore;
   final bool archived;
+
+  /// Optional planning details (added schema v4).
+  final String location; // campsite / place name
+  final String? locationLink; // maps or booking URL
+  final String weather; // free-text expected conditions
+  final int? partySize; // exact headcount
+  final String notes; // free-text trip notes
 
   final List<Category> categories;
 
@@ -90,6 +102,11 @@ class Trip {
     bool? calendarSynced,
     int? Function()? reminderDaysBefore,
     bool? archived,
+    String? location,
+    String? Function()? locationLink,
+    String? weather,
+    int? Function()? partySize,
+    String? notes,
     List<Category>? categories,
   }) {
     return Trip(
@@ -108,6 +125,11 @@ class Trip {
           ? reminderDaysBefore()
           : this.reminderDaysBefore,
       archived: archived ?? this.archived,
+      location: location ?? this.location,
+      locationLink: locationLink != null ? locationLink() : this.locationLink,
+      weather: weather ?? this.weather,
+      partySize: partySize != null ? partySize() : this.partySize,
+      notes: notes ?? this.notes,
       categories: categories ?? this.categories,
     );
   }
@@ -126,6 +148,11 @@ class Trip {
         'calendarSynced': calendarSynced,
         'reminderDaysBefore': reminderDaysBefore,
         'archived': archived,
+        'location': location,
+        'locationLink': locationLink,
+        'weather': weather,
+        'partySize': partySize,
+        'notes': notes,
         'categories': categories.map((c) => c.toJson()).toList(),
       };
 
@@ -147,6 +174,11 @@ class Trip {
         calendarSynced: json['calendarSynced'] as bool? ?? false,
         reminderDaysBefore: (json['reminderDaysBefore'] as num?)?.toInt(),
         archived: json['archived'] as bool? ?? false,
+        location: json['location'] as String? ?? '',
+        locationLink: json['locationLink'] as String?,
+        weather: json['weather'] as String? ?? '',
+        partySize: (json['partySize'] as num?)?.toInt(),
+        notes: json['notes'] as String? ?? '',
         categories: (json['categories'] as List<dynamic>? ?? [])
             .map((e) => Category.fromJson(e as Map<String, dynamic>))
             .toList(),

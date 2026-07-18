@@ -124,6 +124,11 @@ class AppController extends AsyncNotifier<AppData> {
     required DateTime? endDate,
     required bool calendarSynced,
     required int? reminderDaysBefore,
+    required String location,
+    required String? locationLink,
+    required String weather,
+    required int? partySize,
+    required String notes,
   }) =>
       _update((d) => _mapTrip(d, tripId, (t) => t.copyWith(
             name: name,
@@ -137,6 +142,11 @@ class AppController extends AsyncNotifier<AppData> {
             endDate: () => endDate,
             calendarSynced: calendarSynced,
             reminderDaysBefore: () => reminderDaysBefore,
+            location: location,
+            locationLink: () => locationLink,
+            weather: weather,
+            partySize: () => partySize,
+            notes: notes,
           )));
 
   // ---- Categories & items ------------------------------------------------

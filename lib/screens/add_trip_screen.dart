@@ -32,6 +32,11 @@ class AddTripScreen extends ConsumerStatefulWidget {
 class _AddTripScreenState extends ConsumerState<AddTripScreen> {
   final _name = TextEditingController();
   final _budget = TextEditingController();
+  final _location = TextEditingController();
+  final _locationLink = TextEditingController();
+  final _weather = TextEditingController();
+  final _partySize = TextEditingController();
+  final _notes = TextEditingController();
   Country? _country;
   Season? _season;
   CampStyle? _style;
@@ -58,13 +63,27 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
       _addCalendar = t.calendarSynced;
       _reminderOn = t.reminderDaysBefore != null;
       _reminderDays = t.reminderDaysBefore ?? 3;
+      _location.text = t.location;
+      _locationLink.text = t.locationLink ?? '';
+      _weather.text = t.weather;
+      if (t.partySize != null) _partySize.text = '${t.partySize}';
+      _notes.text = t.notes;
     }
   }
 
   @override
   void dispose() {
-    _name.dispose();
-    _budget.dispose();
+    for (final ctl in [
+      _name,
+      _budget,
+      _location,
+      _locationLink,
+      _weather,
+      _partySize,
+      _notes,
+    ]) {
+      ctl.dispose();
+    }
     super.dispose();
   }
 
@@ -101,6 +120,15 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
     final subtitle = '${TripType.byKey(_type)!.label} · ${_season!.label}';
     final notifier = ref.read(appDataProvider.notifier);
 
+    // Optional planning details (blank -> unset).
+    final location = _location.text.trim();
+    final linkText = _locationLink.text.trim();
+    final locationLink = linkText.isEmpty ? null : linkText;
+    final weather = _weather.text.trim();
+    final party = int.tryParse(_partySize.text.trim());
+    final partySize = (party != null && party > 0) ? party : null;
+    final notes = _notes.text.trim();
+
     // Edit mode: update the existing trip in place and return to it.
     final editing = widget.existing;
     if (editing != null) {
@@ -118,6 +146,11 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
         calendarSynced: _start != null && _addCalendar,
         reminderDaysBefore:
             (_start != null && _reminderOn) ? _reminderDays : null,
+        location: location,
+        locationLink: locationLink,
+        weather: weather,
+        partySize: partySize,
+        notes: notes,
       );
       Navigator.of(context).pop();
       return;
@@ -137,6 +170,11 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
       endDate: _end ?? _start,
       calendarSynced: _start != null && _addCalendar,
       reminderDaysBefore: (_start != null && _reminderOn) ? _reminderDays : null,
+      location: location,
+      locationLink: locationLink,
+      weather: weather,
+      partySize: partySize,
+      notes: notes,
     );
     notifier.addTrip(trip);
     if (_startList != null) {
@@ -205,11 +243,31 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                         selected: _country,
                         onSelect: (c) => setState(() => _country = c)),
                     const SizedBox(height: 28),
+                    const SectionLabel('Campsite (optional)'),
+                    const SizedBox(height: 12),
+                    _TextBox(
+                        controller: _location,
+                        hint: 'Place or campsite name',
+                        icon: Icons.place_outlined),
+                    const SizedBox(height: 8),
+                    _TextBox(
+                        controller: _locationLink,
+                        hint: 'Link (maps, booking, website)',
+                        icon: Icons.link,
+                        keyboardType: TextInputType.url),
+                    const SizedBox(height: 28),
                     const SectionLabel('Season'),
                     const SizedBox(height: 12),
                     _SeasonChips(
                         selected: _season,
                         onSelect: (s) => setState(() => _season = s)),
+                    const SizedBox(height: 28),
+                    const SectionLabel('Expected weather (optional)'),
+                    const SizedBox(height: 12),
+                    _TextBox(
+                        controller: _weather,
+                        hint: 'e.g. cold nights ~0°C, rain likely',
+                        icon: Icons.cloud_outlined),
                     const SizedBox(height: 28),
                     const SectionLabel('Camping style'),
                     const SizedBox(height: 12),
@@ -222,6 +280,14 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                     _TypeRow(
                         selected: _type,
                         onSelect: (t) => setState(() => _type = t)),
+                    const SizedBox(height: 28),
+                    const SectionLabel('Party size (optional)'),
+                    const SizedBox(height: 12),
+                    _TextBox(
+                        controller: _partySize,
+                        hint: 'How many people, e.g. 4',
+                        icon: Icons.groups_outlined,
+                        keyboardType: TextInputType.number),
                     const SizedBox(height: 28),
                     const SectionLabel('Dates (optional)'),
                     const SizedBox(height: 12),
@@ -256,6 +322,13 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                     const SectionLabel('Budget (optional)'),
                     const SizedBox(height: 12),
                     _BudgetField(controller: _budget),
+                    const SizedBox(height: 28),
+                    const SectionLabel('Notes (optional)'),
+                    const SizedBox(height: 12),
+                    _TextBox(
+                        controller: _notes,
+                        hint: 'Meeting point, who\'s driving, reservations…',
+                        maxLines: 4),
                     // "Start from" seeds a checklist — creation only; editing a
                     // trip must not clobber the existing checklist.
                     if (!widget.isEditing) ...[
@@ -627,6 +700,63 @@ class _StartFromChips extends StatelessWidget {
           chip(l.name, '${l.itemCount} items · ${l.builtin ? 'Vorlage' : 'Eigene'}',
               selected?.id == l.id, () => onSelect(l)),
       ],
+    );
+  }
+}
+
+/// A bordered surface text field used for the optional free-text trip details.
+class _TextBox extends StatelessWidget {
+  const _TextBox({
+    required this.controller,
+    required this.hint,
+    this.icon,
+    this.maxLines = 1,
+    this.keyboardType,
+  });
+  final TextEditingController controller;
+  final String hint;
+  final IconData? icon;
+  final int maxLines;
+  final TextInputType? keyboardType;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      decoration: BoxDecoration(
+        color: p.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: p.border, width: 1.5),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (icon != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Icon(icon, size: 16, color: p.slate),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: TextField(
+              controller: controller,
+              maxLines: maxLines,
+              keyboardType: keyboardType,
+              style: AppText.body(14, color: p.ink),
+              cursorColor: p.rust,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: InputBorder.none,
+                hintText: hint,
+                hintStyle: AppText.body(14, color: p.slate),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/category.dart';
 import '../models/item.dart';
@@ -58,6 +59,7 @@ class TripDetailScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      _TripInfoCard(trip: trip),
                       for (final cat in trip.categories)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -399,6 +401,108 @@ class _HeaderChip extends StatelessWidget {
         child: Text(label,
             style: AppText.mono(10,
                 color: active ? const Color(0xFFB6DCB0) : const Color(0xFFC8CCB8))),
+      ),
+    );
+  }
+}
+
+/// Shows the optional planning details (campsite, party size, weather, notes)
+/// above the checklist. Renders nothing when the trip has none of them.
+class _TripInfoCard extends StatelessWidget {
+  const _TripInfoCard({required this.trip});
+  final Trip trip;
+
+  Future<void> _openLink(BuildContext context, String raw) async {
+    var s = raw.trim();
+    if (!s.startsWith('http://') && !s.startsWith('https://')) s = 'https://$s';
+    final uri = Uri.tryParse(s);
+    var ok = false;
+    if (uri != null) {
+      ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't open that link")));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final hasCampsite =
+        trip.location.trim().isNotEmpty || (trip.locationLink ?? '').trim().isNotEmpty;
+    final hasParty = trip.partySize != null;
+    final hasWeather = trip.weather.trim().isNotEmpty;
+    final hasNotes = trip.notes.trim().isNotEmpty;
+    if (!hasCampsite && !hasParty && !hasWeather && !hasNotes) {
+      return const SizedBox.shrink();
+    }
+
+    Widget line(IconData icon, Widget child) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 16, color: p.slate),
+              const SizedBox(width: 10),
+              Expanded(child: child),
+            ],
+          ),
+        );
+
+    final link = (trip.locationLink ?? '').trim();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: SurfaceCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (hasCampsite)
+              line(
+                Icons.place_outlined,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (trip.location.trim().isNotEmpty)
+                      Text(trip.location.trim(),
+                          style: AppText.body(13.5, color: p.ink)),
+                    if (link.isNotEmpty)
+                      GestureDetector(
+                        onTap: () => _openLink(context, link),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.open_in_new, size: 12, color: p.rust),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(link,
+                                    style: AppText.body(12, color: p.rust),
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            if (hasParty)
+              line(
+                  Icons.groups_outlined,
+                  Text('${trip.partySize} ${trip.partySize == 1 ? 'person' : 'people'}',
+                      style: AppText.body(13.5, color: p.ink))),
+            if (hasWeather)
+              line(Icons.cloud_outlined,
+                  Text(trip.weather.trim(), style: AppText.body(13.5, color: p.ink))),
+            if (hasNotes)
+              line(Icons.sticky_note_2_outlined,
+                  Text(trip.notes.trim(), style: AppText.body(13.5, color: p.ink, height: 1.4))),
+          ],
+        ),
       ),
     );
   }
