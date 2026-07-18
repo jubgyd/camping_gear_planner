@@ -167,6 +167,15 @@ class AppController extends AsyncNotifier<AppData> {
                     c.items.map((i) => i.id == updated.id ? updated : i).toList()),
           ));
 
+  Future<void> removeItem(String tripId, String categoryId, String itemId) =>
+      _update((d) => _mapCategory(
+            d,
+            tripId,
+            categoryId,
+            (c) => c.copyWith(
+                items: c.items.where((i) => i.id != itemId).toList()),
+          ));
+
   Future<void> setItemStatus(
     String tripId,
     String categoryId,
@@ -325,6 +334,9 @@ class AppController extends AsyncNotifier<AppData> {
           manualEntries: d.manualEntries
               .map((e) => e.id == id ? e.copyWith(bought: bought) : e)
               .toList()));
+
+  Future<void> removeManualEntry(String id) => _update((d) => d.copyWith(
+      manualEntries: d.manualEntries.where((e) => e.id != id).toList()));
 
   // ---- Import (GDD §12) --------------------------------------------------
 

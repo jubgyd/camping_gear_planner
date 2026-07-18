@@ -103,6 +103,45 @@ void main() {
         isNull);
   });
 
+  test('removing a shopping item deletes it from the trip', () async {
+    const seed = AppData(trips: [
+      Trip(id: 't1', name: 'T', categories: [
+        Category(id: 'c1', name: 'Cat', items: [
+          Item(id: 'i1', name: 'A', status: ItemStatus.needToBuy),
+          Item(id: 'i2', name: 'B', status: ItemStatus.needToBuy),
+        ]),
+      ]),
+    ]);
+    final (container, c) = await _boot(seed);
+    addTearDown(container.dispose);
+
+    await c.removeItem('t1', 'c1', 'i1');
+
+    final items = container
+        .read(appDataProvider)
+        .value!
+        .trips
+        .single
+        .categories
+        .single
+        .items;
+    expect(items.map((i) => i.id), ['i2']);
+  });
+
+  test('removing a manual shopping entry deletes it', () async {
+    const seed = AppData(manualEntries: [
+      ManualEntry(id: 'm1', name: 'X'),
+      ManualEntry(id: 'm2', name: 'Y'),
+    ]);
+    final (container, c) = await _boot(seed);
+    addTearDown(container.dispose);
+
+    await c.removeManualEntry('m1');
+
+    expect(container.read(appDataProvider).value!.manualEntries.map((e) => e.id),
+        ['m2']);
+  });
+
   test('adding gear to a trip creates an item in the gear category', () async {
     const seed = AppData(trips: [Trip(id: 't1', name: 'T')]);
     final (container, c) = await _boot(seed);

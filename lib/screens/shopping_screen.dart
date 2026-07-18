@@ -232,7 +232,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
-                              'Tap the price to update it · tap an item for full details',
+                              'Tap the price to update it · tap an item to edit or delete',
                               textAlign: TextAlign.center,
                               style: AppText.body(11, color: p.slate),
                             ),

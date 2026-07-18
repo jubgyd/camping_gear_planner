@@ -144,6 +144,38 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
     Navigator.of(context).pop();
   }
 
+  /// True once there is something persisted to delete (existing item or entry).
+  bool get _canDelete => widget.isManual || widget.existing != null;
+
+  Future<void> _delete() async {
+    final name = _name.text.trim().isEmpty ? 'this item' : '“${_name.text.trim()}”';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete item?'),
+        content: Text('$name will be removed. This cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final c = ref.read(appDataProvider.notifier);
+    if (widget.isManual) {
+      c.removeManualEntry(widget.manualEntry!.id);
+    } else {
+      c.removeItem(widget.tripId!, widget.categoryId!, widget.existing!.id);
+    }
+    if (mounted) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
@@ -280,6 +312,22 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                     const SectionLabel('Note'),
                     const SizedBox(height: 10),
                     _boxedField(p, _note, '', maxLines: 3),
+                    if (_canDelete) ...[
+                      const SizedBox(height: 28),
+                      OutlinedButton.icon(
+                        onPressed: _delete,
+                        icon: Icon(Icons.delete_outline,
+                            size: 18, color: Colors.red.shade600),
+                        label: Text('Delete item',
+                            style: AppText.body(14, color: Colors.red.shade600)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.red.shade200),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
