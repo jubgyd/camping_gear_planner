@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/trip.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
@@ -42,7 +43,8 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Camps', style: AppText.display(26, color: p.onHeader)),
+              Text(context.t('camps_title'),
+                  style: AppText.display(26, color: p.onHeader)),
               Row(
                 children: [
                   _BackupMenuButton(
@@ -88,8 +90,8 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
                             padding: const EdgeInsets.only(top: 48),
                             child: Text(
                                 _tab == 0
-                                    ? 'No active trips — tap + to plan one.'
-                                    : 'No archived trips yet.',
+                                    ? context.t('camps_empty_active')
+                                    : context.t('camps_empty_archived'),
                                 textAlign: TextAlign.center,
                                 style: AppText.body(14, color: p.slate)),
                           ),
@@ -194,9 +196,9 @@ class _TripTabs extends StatelessWidget {
 
     return Row(
       children: [
-        seg(0, 'Active ($activeCount)'),
+        seg(0, '${context.t('camps_tab_active')} ($activeCount)'),
         const SizedBox(width: 8),
-        seg(1, 'Archived ($archivedCount)'),
+        seg(1, '${context.t('camps_tab_archived')} ($archivedCount)'),
       ],
     );
   }
@@ -223,9 +225,9 @@ class _BackupMenuButton extends StatelessWidget {
     final choice = await showMenu<String>(
       context: context,
       position: position,
-      items: const [
-        PopupMenuItem(value: 'save', child: Text('💾  Save a backup')),
-        PopupMenuItem(value: 'load', child: Text('📂  Load a backup')),
+      items: [
+        PopupMenuItem(value: 'save', child: Text('💾  ${context.t('backup_save')}')),
+        PopupMenuItem(value: 'load', child: Text('📂  ${context.t('backup_load')}')),
       ],
     );
     if (choice == 'save') onSave();

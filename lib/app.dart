@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'l10n/app_strings.dart';
 import 'screens/camps_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/shopping_screen.dart';
@@ -22,13 +23,17 @@ class _HomeShellState extends State<HomeShell> {
 
   static const _tabs = [CampsScreen(), ShoppingScreen(), SettingsScreen()];
   static const _dests = [
-    (icon: Icons.terrain_outlined, sel: Icons.terrain, label: 'Camps'),
+    (icon: Icons.terrain_outlined, sel: Icons.terrain, labelKey: 'nav_camps'),
     (
       icon: Icons.shopping_bag_outlined,
       sel: Icons.shopping_bag,
-      label: 'Shopping'
+      labelKey: 'nav_shopping'
     ),
-    (icon: Icons.settings_outlined, sel: Icons.settings, label: 'Settings'),
+    (
+      icon: Icons.settings_outlined,
+      sel: Icons.settings,
+      labelKey: 'nav_settings'
+    ),
   ];
 
   @override
@@ -63,7 +68,7 @@ class _HomeShellState extends State<HomeShell> {
             NavigationDestination(
               icon: Icon(d.icon, color: p.slate),
               selectedIcon: Icon(d.sel, color: p.rust),
-              label: d.label,
+              label: context.t(d.labelKey),
             ),
         ],
       ),
@@ -93,7 +98,7 @@ class _SideRail extends StatelessWidget {
                   const Text('⛰', style: TextStyle(fontSize: 22)),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text('Camp Gear',
+                    child: Text(context.t('app_name_short'),
                         style: AppText.display(18, color: p.onHeader)),
                   ),
                 ],
@@ -114,7 +119,7 @@ class _SideRail extends StatelessWidget {
 
 class _RailItem extends StatelessWidget {
   const _RailItem({required this.dest, required this.active, required this.onTap});
-  final ({IconData icon, IconData sel, String label}) dest;
+  final ({IconData icon, IconData sel, String labelKey}) dest;
   final bool active;
   final VoidCallback onTap;
 
@@ -131,7 +136,7 @@ class _RailItem extends StatelessWidget {
           children: [
             Icon(active ? dest.sel : dest.icon, size: 20, color: color),
             const SizedBox(width: 12),
-            Text(dest.label, style: AppText.mono(13, color: color)),
+            Text(context.t(dest.labelKey), style: AppText.mono(13, color: color)),
           ],
         ),
       ),

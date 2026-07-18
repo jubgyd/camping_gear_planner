@@ -2,6 +2,7 @@
 // repository (no path_provider platform channel needed under `flutter test`).
 import 'package:camp_gear_planner/app.dart';
 import 'package:camp_gear_planner/data/repository.dart';
+import 'package:camp_gear_planner/l10n/app_strings.dart';
 import 'package:camp_gear_planner/models/app_data.dart';
 import 'package:camp_gear_planner/state/app_controller.dart';
 import 'package:flutter/material.dart';
@@ -20,13 +21,20 @@ class FakeRepository implements Repository {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   testWidgets('boots to the Camps tab with empty state', (tester) async {
+    final strings = await AppStrings.load();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           repositoryProvider.overrideWithValue(FakeRepository()),
         ],
-        child: const MaterialApp(home: HomeShell()),
+        child: MaterialApp(
+          home: const HomeShell(),
+          builder: (context, child) =>
+              AppStrings(lang: 'en', maps: strings, child: child!),
+        ),
       ),
     );
     // Let the AsyncNotifier resolve its initial load.
@@ -36,7 +44,35 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationDestination), findsNWidgets(3));
 
-    // Camps tab (index 0) shows its empty-state copy.
+    // Camps tab (index 0) shows its empty-state copy (English).
     expect(find.textContaining('No active trips'), findsOneWidget);
+  });
+
+  testWidgets('language switches the UI text live', (tester) async {
+    final maps = {
+      'en': {'k': 'Camps', 'e': 'No active trips'},
+      'de': {'k': 'Camps', 'e': 'Keine aktiven Trips'},
+    };
+    var lang = 'en';
+    late StateSetter setOuter;
+    await tester.pumpWidget(MaterialApp(
+      home: StatefulBuilder(builder: (ctx, setState) {
+        setOuter = setState;
+        return AppStrings(
+          lang: lang,
+          maps: maps,
+          child: Builder(
+            builder: (c) =>
+                Text(c.t('e'), textDirection: TextDirection.ltr),
+          ),
+        );
+      }),
+    ));
+
+    expect(find.text('No active trips'), findsOneWidget);
+    setOuter(() => lang = 'de');
+    await tester.pump();
+    expect(find.text('Keine aktiven Trips'), findsOneWidget);
+    expect(find.text('No active trips'), findsNothing);
   });
 }

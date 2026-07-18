@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/item.dart';
 import '../models/item_status.dart';
 import '../models/shopping_entry.dart';
@@ -148,20 +149,23 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
   bool get _canDelete => widget.isManual || widget.existing != null;
 
   Future<void> _delete() async {
-    final name = _name.text.trim().isEmpty ? 'this item' : '“${_name.text.trim()}”';
+    final name = _name.text.trim().isEmpty
+        ? context.t('item_this_item')
+        : '“${_name.text.trim()}”';
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete item?'),
-        content: Text('$name will be removed. This cannot be undone.'),
+        title: Text(context.t('item_delete_confirm_title')),
+        content: Text(
+            context.t('item_delete_confirm_body').replaceFirst('{name}', name)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(context.t('common_cancel'))),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text(context.t('common_delete')),
           ),
         ],
       ),
@@ -200,7 +204,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                   const Spacer(),
                   TextButton(
                       onPressed: _save,
-                      child: Text('Save',
+                      child: Text(context.t('common_save'),
                           style: AppText.mono(14, color: p.rust, weight: FontWeight.w500))),
                 ],
               ),
@@ -217,7 +221,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                       cursorColor: p.rust,
                       decoration: InputDecoration(
                         isDense: true,
-                        hintText: 'Item name',
+                        hintText: context.t('item_name_hint'),
                         hintStyle: AppText.display(24, color: p.slate),
                         enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: p.border, width: 2)),
@@ -227,7 +231,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                     ),
                     const SizedBox(height: 22),
                     if (!widget.isManual) ...[
-                      const SectionLabel('Status'),
+                      SectionLabel(context.t('item_status')),
                       const SizedBox(height: 10),
                       _StatusSelector(
                         status: _status,
@@ -235,7 +239,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                       ),
                       const SizedBox(height: 22),
                     ],
-                    const SectionLabel('Link'),
+                    SectionLabel(context.t('item_link')),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -252,24 +256,24 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                     if (_fetch == _Fetch.found)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
-                        child: Text('✓ Price found and filled in below',
+                        child: Text(context.t('item_fetch_found'),
                             style: AppText.body(12, color: p.moss)),
                       ),
                     if (_fetch == _Fetch.empty)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
-                        child: Text('No price found on this page — enter it manually',
+                        child: Text(context.t('item_fetch_none'),
                             style: AppText.body(12, color: p.inkMuted)),
                       ),
                     if (_fetch == _Fetch.error)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Text(
-                            "Couldn't reach that page — check the link or enter the price manually",
+                            context.t('item_fetch_error'),
                             style: AppText.body(12, color: p.inkMuted)),
                       ),
                     const SizedBox(height: 22),
-                    const SectionLabel('Quantity'),
+                    SectionLabel(context.t('item_quantity')),
                     const SizedBox(height: 10),
                     _QuantityStepper(
                       quantity: _quantity,
@@ -284,7 +288,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SectionLabel('Price / unit (€)'),
+                              SectionLabel(context.t('item_price_unit')),
                               const SizedBox(height: 10),
                               _boxedField(p, _price, '0.00',
                                   mono: true,
@@ -298,7 +302,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SectionLabel('Weight / unit (g)'),
+                              SectionLabel(context.t('item_weight_unit')),
                               const SizedBox(height: 10),
                               _boxedField(p, _weight, '0',
                                   mono: true,
@@ -309,7 +313,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                       ],
                     ),
                     const SizedBox(height: 22),
-                    const SectionLabel('Note'),
+                    SectionLabel(context.t('item_note')),
                     const SizedBox(height: 10),
                     _boxedField(p, _note, '', maxLines: 3),
                     if (_canDelete) ...[
@@ -318,7 +322,7 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                         onPressed: _delete,
                         icon: Icon(Icons.delete_outline,
                             size: 18, color: Colors.red.shade600),
-                        label: Text('Delete item',
+                        label: Text(context.t('item_delete'),
                             style: AppText.body(14, color: Colors.red.shade600)),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -388,9 +392,9 @@ class _StatusSelector extends StatelessWidget {
   final ValueChanged<ItemStatus> onSelect;
 
   static const _opts = [
-    (ItemStatus.owned, 'Owned'),
-    (ItemStatus.needToBuy, 'Need to buy'),
-    (ItemStatus.notNeeded, 'N/A'),
+    (ItemStatus.owned, 'status_owned'),
+    (ItemStatus.needToBuy, 'status_needtobuy'),
+    (ItemStatus.notNeeded, 'status_na'),
   ];
 
   @override
@@ -414,7 +418,7 @@ class _StatusSelector extends StatelessWidget {
                         color: status == o.$1 ? p.selectedBg : p.border,
                         width: 1.5),
                   ),
-                  child: Text(o.$2,
+                  child: Text(context.t(o.$2),
                       style: AppText.body(12,
                           color: status == o.$1 ? p.bg : p.ink)),
                 ),
@@ -442,7 +446,7 @@ class _FetchButton extends StatelessWidget {
           color: enabled ? p.rust : p.slateSoft,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(loading ? 'Fetching…' : 'Fetch info',
+        child: Text(loading ? context.t('item_fetching') : context.t('item_fetch_btn'),
             style: AppText.mono(12, color: enabled ? Colors.white : p.slate)),
       ),
     );
@@ -496,7 +500,7 @@ class _QuantityStepper extends StatelessWidget {
         btn('+', () => onChanged(quantity + 1)),
         if (quantity > 1 && w != null && w > 0) ...[
           const SizedBox(width: 14),
-          Text('${fmtWeight(w * quantity)} total',
+          Text('${fmtWeight(w * quantity)} ${context.t('item_total')}',
               style: AppText.mono(12, color: p.inkMuted)),
         ],
       ],

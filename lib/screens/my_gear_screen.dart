@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/gear_item.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
@@ -51,7 +52,7 @@ class _MyGearScreenState extends ConsumerState<MyGearScreen> {
                 IconButton(
                     icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                     onPressed: () => Navigator.of(context).pop()),
-                Text(_picker ? 'Aus meinem Fundus' : 'My Gear',
+                Text(context.t(_picker ? 'mygear_picker_title' : 'mygear_title'),
                     style: AppText.display(18, color: p.onHeader)),
                 const Spacer(),
                 _RoundIconButton(
@@ -65,7 +66,7 @@ class _MyGearScreenState extends ConsumerState<MyGearScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(32),
                       child: Text(
-                        'No gear yet.\nTap + to add gear you own, then pick from it when planning trips.',
+                        context.t('mygear_empty'),
                         textAlign: TextAlign.center,
                         style: AppText.body(14, color: p.slate, height: 1.5),
                       ),
@@ -92,7 +93,7 @@ class _MyGearScreenState extends ConsumerState<MyGearScreen> {
                                     ScaffoldMessenger.of(context)
                                       ..clearSnackBars()
                                       ..showSnackBar(SnackBar(
-                                          content: Text('Added ${g.name}'),
+                                          content: Text(context.t('common_added').replaceFirst('{name}', g.name)),
                                           duration:
                                               const Duration(milliseconds: 900)));
                                   },
@@ -200,7 +201,7 @@ class _GearGroup extends StatelessWidget {
                           color: addedIds.contains(g.id) ? p.mossSoft : p.rust,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Text(addedIds.contains(g.id) ? 'Added' : '+ Add',
+                        child: Text(context.t(addedIds.contains(g.id) ? 'tmpl_added' : 'tmpl_add'),
                             style: AppText.mono(12,
                                 color: addedIds.contains(g.id)
                                     ? p.moss
@@ -295,7 +296,7 @@ class _GearEditDialogState extends State<_GearEditDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.existing == null ? 'Add gear' : 'Edit gear'),
+      title: Text(context.t(widget.existing == null ? 'mygear_add' : 'mygear_edit')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -303,15 +304,16 @@ class _GearEditDialogState extends State<_GearEditDialog> {
             TextField(
                 controller: _name,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Name')),
+                decoration: InputDecoration(labelText: context.t('gear_name'))),
             const SizedBox(height: 10),
             TextField(
                 controller: _category,
-                decoration: const InputDecoration(labelText: 'Category')),
+                decoration:
+                    InputDecoration(labelText: context.t('gear_category'))),
             const SizedBox(height: 10),
             TextField(
                 controller: _note,
-                decoration: const InputDecoration(labelText: 'Note')),
+                decoration: InputDecoration(labelText: context.t('item_note'))),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -319,8 +321,8 @@ class _GearEditDialogState extends State<_GearEditDialog> {
                   child: TextField(
                       controller: _weight,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: 'Weight (g)')),
+                      decoration: InputDecoration(
+                          labelText: context.t('gear_weight'))),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -328,8 +330,8 @@ class _GearEditDialogState extends State<_GearEditDialog> {
                       controller: _price,
                       keyboardType: const TextInputType.numberWithOptions(
                           decimal: true),
-                      decoration: const InputDecoration(
-                          labelText: 'Price', prefixText: '€ ')),
+                      decoration: InputDecoration(
+                          labelText: context.t('gear_price'), prefixText: '€ ')),
                 ),
               ],
             ),
@@ -339,8 +341,8 @@ class _GearEditDialogState extends State<_GearEditDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+            child: Text(context.t('common_cancel'))),
+        FilledButton(onPressed: _save, child: Text(context.t('common_save'))),
       ],
     );
   }

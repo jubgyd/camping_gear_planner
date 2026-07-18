@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_strings.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
@@ -26,7 +27,8 @@ class SettingsScreen extends ConsumerWidget {
       children: [
         ContourHeader(
           padding: const EdgeInsets.fromLTRB(24, 44, 24, 22),
-          child: Text('Settings', style: AppText.display(26, color: p.onHeader)),
+          child: Text(context.t('settings_title'),
+              style: AppText.display(26, color: p.onHeader)),
         ),
         Expanded(
           child: ListView(
@@ -37,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _CardSection(
-                      title: 'Language',
+                      title: context.t('settings_language'),
                       child: _SegRow(
                         options: const [('en', '🇬🇧 English'), ('de', '🇩🇪 Deutsch')],
                         selected: settings?.language ?? 'de',
@@ -46,9 +48,12 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     _CardSection(
-                      title: 'Appearance',
+                      title: context.t('settings_appearance'),
                       child: _SegRow(
-                        options: const [('light', 'Light'), ('dark', 'Dark')],
+                        options: [
+                          ('light', context.t('settings_light')),
+                          ('dark', context.t('settings_dark')),
+                        ],
                         selected:
                             (settings?.darkMode ?? false) ? 'dark' : 'light',
                         onSelect: (v) => c.setDarkMode(v == 'dark'),
@@ -56,44 +61,43 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     _ActionRow(
-                      label: 'My Gear',
+                      label: context.t('settings_mygear'),
                       onTap: () => Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => const MyGearScreen())),
                     ),
                     const SizedBox(height: 8),
                     _ActionRow(
-                      label: 'Lists',
+                      label: context.t('settings_lists'),
                       onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const ListsScreen())),
                     ),
                     const SizedBox(height: 8),
                     _ActionRow(
-                      label: 'Suggestions library',
+                      label: context.t('settings_suggestions'),
                       onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const TemplateScreen())),
                     ),
                     const SizedBox(height: 8),
                     _ActionRow(
-                        label: 'Save a backup',
-                        subtitle: 'Write all your plans to a file you choose',
+                        label: context.t('backup_save'),
+                        subtitle: context.t('settings_backup_save_sub'),
                         icon: Icons.save_alt,
                         onTap: () => saveBackup(context, ref)),
                     const SizedBox(height: 8),
                     _ActionRow(
-                        label: 'Load a backup',
-                        subtitle: 'Restore plans from a saved file',
+                        label: context.t('backup_load'),
+                        subtitle: context.t('settings_backup_load_sub'),
                         icon: Icons.folder_open,
                         onTap: () => loadBackup(context, ref)),
                     const SizedBox(height: 8),
                     _ActionRow(
-                      label: 'About',
+                      label: context.t('settings_about'),
                       onTap: () => showAboutDialog(
                         context: context,
                         applicationName: 'Camp Gear Planner',
                         applicationVersion: '0.2.0',
                         children: [
-                          const Text(
-                              'Offline camping-trip gear planner — checklists, packing weight, budgets, and a shopping list.'),
+                          Text(context.t('settings_about_body')),
                         ],
                       ),
                     ),

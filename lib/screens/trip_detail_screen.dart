@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/category.dart';
 import '../models/item.dart';
 import '../models/item_status.dart';
@@ -42,7 +43,7 @@ class TripDetailScreen extends ConsumerWidget {
     if (trip == null) {
       return Scaffold(
           backgroundColor: p.bg,
-          body: const Center(child: Text('Trip not found')));
+          body: Center(child: Text(context.t('td_not_found'))));
     }
     final c = ref.read(appDataProvider.notifier);
 
@@ -70,7 +71,7 @@ class TripDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Tap a status dot to cycle · tap an item to edit',
+                        context.t('td_checklist_hint'),
                         textAlign: TextAlign.center,
                         style: AppText.body(11, color: p.slate),
                       ),
@@ -102,8 +103,8 @@ class _Header extends ConsumerWidget {
           children: [
             ListTile(
               leading: Icon(Icons.lightbulb_outline, color: p.moss),
-              title: const Text('From suggestions'),
-              subtitle: const Text('Prefilled ideas for your camp style'),
+              title: Text(context.t('td_add_suggestions_title')),
+              subtitle: Text(context.t('td_add_suggestions_sub')),
               onTap: () {
                 Navigator.pop(ctx);
                 Navigator.of(context).push(MaterialPageRoute(
@@ -112,8 +113,8 @@ class _Header extends ConsumerWidget {
             ),
             ListTile(
               leading: Icon(Icons.backpack_outlined, color: p.rust),
-              title: const Text('From my gear'),
-              subtitle: const Text('Pick from gear you already own'),
+              title: Text(context.t('td_add_mygear_title')),
+              subtitle: Text(context.t('td_add_mygear_sub')),
               onTap: () {
                 Navigator.pop(ctx);
                 Navigator.of(context).push(MaterialPageRoute(
@@ -128,30 +129,31 @@ class _Header extends ConsumerWidget {
 
   Future<void> _saveAsList(
       BuildContext context, AppController c, Trip trip) async {
+    final savedTemplate = context.t('td_saved_as_list');
     final field = TextEditingController(text: trip.name);
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Save as list'),
+        title: Text(context.t('td_saveaslist_title')),
         content: TextField(
           controller: field,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'List name'),
+          decoration: InputDecoration(labelText: context.t('td_list_name')),
           onSubmitted: (v) => Navigator.pop(ctx, v),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              child: Text(context.t('common_cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, field.text),
-              child: const Text('Save')),
+              child: Text(context.t('common_save'))),
         ],
       ),
     );
     if (name != null && name.trim().isNotEmpty) {
       c.saveTripAsList(trip.id, name.trim());
-      onFlash('Saved “${name.trim()}” as a list');
+      onFlash(savedTemplate.replaceFirst('{name}', name.trim()));
     }
   }
 
@@ -160,18 +162,17 @@ class _Header extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete trip?'),
+        title: Text(context.t('td_delete_title')),
         content: Text(
-            '“${trip.name}” and its whole checklist will be permanently deleted. '
-            'This cannot be undone.'),
+            context.t('td_delete_body').replaceFirst('{name}', trip.name)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(context.t('common_cancel'))),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text(context.t('common_delete')),
           ),
         ],
       ),
@@ -196,24 +197,25 @@ class _Header extends ConsumerWidget {
       final result = await showDialog<double?>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Trip budget (€)'),
+          title: Text(context.t('td_budget_title')),
           content: TextField(
             controller: controller,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(prefixText: '€ ', hintText: 'e.g. 180'),
+            decoration: InputDecoration(
+                prefixText: '€ ', hintText: context.t('addtrip_budget_hint')),
           ),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx, -1.0),
-                child: const Text('Clear')),
+                child: Text(context.t('common_clear'))),
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+                child: Text(context.t('common_cancel'))),
             FilledButton(
                 onPressed: () =>
                     Navigator.pop(ctx, double.tryParse(controller.text.trim())),
-                child: const Text('Save')),
+                child: Text(context.t('common_save'))),
           ],
         ),
       );
@@ -232,11 +234,12 @@ class _Header extends ConsumerWidget {
                 icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              Text('Checkliste', style: AppText.body(14, color: p.onHeader)),
+              Text(context.t('td_header_checklist'),
+                  style: AppText.body(14, color: p.onHeader)),
               const Spacer(),
               IconButton(
                 icon: Icon(Icons.add, color: p.onHeader, size: 20),
-                tooltip: 'Add items',
+                tooltip: context.t('td_add_items'),
                 onPressed: () => _showAddSheet(context, trip.id),
               ),
               PopupMenuButton<String>(
@@ -250,7 +253,8 @@ class _Header extends ConsumerWidget {
                         builder: (_) => ShareScreen(tripId: trip.id)));
                   } else if (v == 'archive') {
                     c.setArchived(trip.id, !trip.archived);
-                    onFlash(trip.archived ? 'Trip restored' : 'Trip archived');
+                    onFlash(context.t(
+                        trip.archived ? 'td_flash_restored' : 'td_flash_archived'));
                   } else if (v == 'save_list') {
                     _saveAsList(context, c, trip);
                   } else if (v == 'save_file') {
@@ -260,17 +264,19 @@ class _Header extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('✏️ Edit trip')),
-                  const PopupMenuItem(value: 'share', child: Text('📤 Share checklist')),
-                  const PopupMenuItem(
-                      value: 'save_file', child: Text('💾 Save plan to file')),
-                  const PopupMenuItem(
-                      value: 'save_list', child: Text('📋 Save as list')),
+                  PopupMenuItem(value: 'edit', child: Text('✏️ ${context.t('td_menu_edit')}')),
+                  PopupMenuItem(value: 'share', child: Text('📤 ${context.t('td_menu_share')}')),
+                  PopupMenuItem(
+                      value: 'save_file', child: Text('💾 ${context.t('td_menu_savefile')}')),
+                  PopupMenuItem(
+                      value: 'save_list', child: Text('📋 ${context.t('td_menu_savelist')}')),
                   PopupMenuItem(
                       value: 'archive',
-                      child: Text(trip.archived ? '↩ Restore trip' : '🗄 Archive trip')),
-                  const PopupMenuItem(
-                      value: 'delete', child: Text('🗑 Delete trip')),
+                      child: Text(trip.archived
+                          ? '↩ ${context.t('td_menu_restore')}'
+                          : '🗄 ${context.t('td_menu_archive')}')),
+                  PopupMenuItem(
+                      value: 'delete', child: Text('🗑 ${context.t('td_menu_delete')}')),
                 ],
               ),
             ],
@@ -292,26 +298,28 @@ class _Header extends ConsumerWidget {
                     fg: const Color(0xFFF0B692)),
               if (dateLabel != null)
                 _HeaderChip(
-                  label: trip.calendarSynced ? '📅 In calendar' : '📅 Add to calendar',
+                  label: trip.calendarSynced
+                      ? '📅 ${context.t('td_cal_in')}'
+                      : '📅 ${context.t('td_cal_add')}',
                   active: trip.calendarSynced,
                   onTap: () {
                     final s = !trip.calendarSynced;
                     c.setCalendarSynced(trip.id, s);
-                    onFlash(s ? '✓ Added to calendar' : 'Removed from calendar');
+                    onFlash(context.t(
+                        s ? 'td_flash_cal_on' : 'td_flash_cal_off'));
                   },
                 ),
               if (dateLabel != null)
                 _HeaderChip(
                   label: trip.reminderDaysBefore != null
-                      ? '🔔 ${trip.reminderDaysBefore}d reminder'
-                      : '🔔 Remind me',
+                      ? '🔔 ${context.t('td_reminder_set').replaceFirst('{d}', '${trip.reminderDaysBefore}')}'
+                      : '🔔 ${context.t('td_reminder_me')}',
                   active: trip.reminderDaysBefore != null,
                   onTap: () {
                     final on = trip.reminderDaysBefore == null;
                     c.setReminderDays(trip.id, on ? 3 : null);
-                    onFlash(on
-                        ? '🔔 Reminder set for 3 days before'
-                        : 'Reminder turned off');
+                    onFlash(context.t(
+                        on ? 'td_flash_reminder_on' : 'td_flash_reminder_off'));
                   },
                 ),
             ],
@@ -353,7 +361,7 @@ class _Header extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Packed ${fmtWeight(trip.ownedWeightGrams)} · Full ${fmtWeight(trip.fullWeightGrams)}',
+            '${context.t('td_packed')} ${fmtWeight(trip.ownedWeightGrams)} · ${context.t('td_full')} ${fmtWeight(trip.fullWeightGrams)}',
             style: AppText.mono(12, color: muted),
           ),
           const SizedBox(height: 12),
@@ -369,7 +377,7 @@ class _Header extends ConsumerWidget {
           else
             GestureDetector(
               onTap: editBudget,
-              child: Text('+ Set a budget',
+              child: Text(context.t('td_set_budget'),
                   style: AppText.mono(12, color: muted).copyWith(
                       decoration: TextDecoration.underline,
                       decorationStyle: TextDecorationStyle.dotted)),
@@ -422,7 +430,7 @@ class _TripInfoCard extends StatelessWidget {
     }
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't open that link")));
+          SnackBar(content: Text(context.t('td_open_link_err'))));
     }
   }
 
@@ -493,7 +501,7 @@ class _TripInfoCard extends StatelessWidget {
             if (hasParty)
               line(
                   Icons.groups_outlined,
-                  Text('${trip.partySize} ${trip.partySize == 1 ? 'person' : 'people'}',
+                  Text('${trip.partySize} ${context.t(trip.partySize == 1 ? 'td_person' : 'td_people')}',
                       style: AppText.body(13.5, color: p.ink))),
             if (hasWeather)
               line(Icons.cloud_outlined,
@@ -535,7 +543,7 @@ class _CategoryCard extends ConsumerWidget {
                       style: AppText.mono(12, color: p.inkMuted)),
                   IconButton(
                     icon: Icon(Icons.add, size: 18, color: p.slate),
-                    tooltip: 'Add item',
+                    tooltip: context.t('td_add_item'),
                     onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                       builder: (_) => ItemEditScreen(
                           tripId: trip.id, categoryId: category.id),
@@ -662,27 +670,27 @@ class _AddCategoryButton extends StatelessWidget {
         final name = await showDialog<String>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('New category'),
+            title: Text(context.t('td_newcat_title')),
             content: TextField(
                 controller: field,
                 autofocus: true,
-                decoration: const InputDecoration(
-                    hintText: 'e.g. Unterkunft & Schlafen'),
+                decoration: InputDecoration(
+                    hintText: context.t('td_newcat_hint')),
                 onSubmitted: (v) => Navigator.pop(ctx, v)),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel')),
+                  child: Text(context.t('common_cancel'))),
               FilledButton(
                   onPressed: () => Navigator.pop(ctx, field.text),
-                  child: const Text('Add')),
+                  child: Text(context.t('common_add'))),
             ],
           ),
         );
         if (name != null && name.trim().isNotEmpty) onAdd(name.trim());
       },
       icon: Icon(Icons.add, size: 18, color: p.rust),
-      label: Text('Add category', style: AppText.mono(13, color: p.rust)),
+      label: Text(context.t('td_add_category'), style: AppText.mono(13, color: p.rust)),
     );
   }
 }

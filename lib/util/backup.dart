@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/app_data.dart';
 import '../models/trip.dart';
 import '../state/app_controller.dart';
@@ -47,9 +48,9 @@ Future<void> saveBackup(BuildContext context, WidgetRef ref) async {
   await _saveToFile(
     context,
     data,
-    dialogTitle: 'Save a backup of all your plans',
+    dialogTitle: context.t('backup_save_dialog_title'),
     fileName: 'camp-gear-backup-${_dateStamp()}.json',
-    doneMessage: 'Backup saved',
+    doneMessage: context.t('backup_saved'),
   );
 }
 
@@ -59,9 +60,9 @@ Future<void> saveTripToFile(
   await _saveToFile(
     context,
     AppData(trips: [trip]),
-    dialogTitle: 'Save “${trip.name}” to a file',
+    dialogTitle: context.t('backup_save_trip_dialog_title'),
     fileName: '${_slug(trip.name)}.json',
-    doneMessage: 'Plan saved',
+    doneMessage: context.t('backup_plan_saved'),
   );
 }
 
@@ -80,8 +81,8 @@ Future<void> loadBackup(BuildContext context, WidgetRef ref) async {
     incoming = AppData.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   } catch (_) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid or unreadable file')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.t('backup_invalid'))));
     }
     return;
   }
@@ -90,19 +91,18 @@ Future<void> loadBackup(BuildContext context, WidgetRef ref) async {
   final mode = await showDialog<String>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Load into your plans'),
-      content: const Text(
-          'Merge adds any new trips/lists and keeps what you already have. '
-          'Replace all wipes your current data and loads only this file.'),
+      title: Text(context.t('backup_load_title')),
+      content: Text(context.t('backup_load_body')),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.t('common_cancel'))),
         TextButton(
             onPressed: () => Navigator.pop(ctx, 'merge'),
-            child: const Text('Merge')),
+            child: Text(context.t('backup_merge'))),
         FilledButton(
             onPressed: () => Navigator.pop(ctx, 'replace'),
-            child: const Text('Replace all')),
+            child: Text(context.t('backup_replace'))),
       ],
     ),
   );
@@ -113,10 +113,12 @@ Future<void> loadBackup(BuildContext context, WidgetRef ref) async {
       ? await c.replaceAll(incoming)
       : await c.mergeFrom(incoming);
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(mode == 'replace'
-            ? 'Loaded — now $count trips'
-            : 'Merged $count new trips')));
+    final msg = (mode == 'replace'
+            ? context.t('backup_loaded_replace')
+            : context.t('backup_merged'))
+        .replaceFirst('{n}', '$count');
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
   }
 }
 

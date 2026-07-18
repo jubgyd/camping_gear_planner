@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/packing_list.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
@@ -30,7 +31,8 @@ class ListsScreen extends ConsumerWidget {
                 IconButton(
                     icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                     onPressed: () => Navigator.of(context).pop()),
-                Text('Lists', style: AppText.display(18, color: p.onHeader)),
+                Text(context.t('lists_title'),
+                    style: AppText.display(18, color: p.onHeader)),
               ],
             ),
           ),
@@ -45,7 +47,7 @@ class ListsScreen extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8, left: 4),
                         child: Text(
-                          'Start a trip from one of these. Save any trip as a custom list from its ⋯ menu.',
+                          context.t('lists_help'),
                           style: AppText.body(12, color: p.slate, height: 1.5),
                         ),
                       ),
@@ -75,15 +77,15 @@ class ListsScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete “${l.name}”?'),
-        content: const Text('This removes the saved list. Trips already created from it are unaffected.'),
+        title: Text(context.t('lists_delete_title').replaceFirst('{name}', l.name)),
+        content: Text(context.t('lists_delete_body')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(context.t('common_cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete')),
+              child: Text(context.t('common_delete'))),
         ],
       ),
     );
@@ -114,7 +116,8 @@ class _ListCard extends StatelessWidget {
                             style: AppText.display(16, color: p.ink))),
                     const SizedBox(width: 8),
                     TagPill(
-                      text: list.builtin ? 'Vorlage' : 'Eigene',
+                      text: context.t(
+                          list.builtin ? 'addtrip_template' : 'addtrip_custom'),
                       bg: list.builtin ? p.slateSoft : p.mossSoft,
                       fg: list.builtin ? p.inkMuted : p.moss,
                     ),
@@ -126,7 +129,7 @@ class _ListCard extends StatelessWidget {
                       style: AppText.body(12.5, color: p.inkMuted)),
                 ],
                 const SizedBox(height: 4),
-                Text('${list.itemCount} items · ${list.categories.length} categories',
+                Text('${list.itemCount} ${context.t('addtrip_items')} · ${list.categories.length} ${context.t('lists_categories')}',
                     style: AppText.mono(11, color: p.slate)),
               ],
             ),

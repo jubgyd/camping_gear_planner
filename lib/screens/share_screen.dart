@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/item_status.dart';
 import '../models/trip.dart';
 import '../state/app_controller.dart';
@@ -47,7 +48,8 @@ class ShareScreen extends ConsumerWidget {
         ref.watch(appDataProvider).valueOrNull?.trips.firstWhereOrNull((t) => t.id == tripId);
     if (trip == null) {
       return Scaffold(
-          backgroundColor: p.bg, body: const Center(child: Text('Trip not found')));
+          backgroundColor: p.bg,
+          body: Center(child: Text(context.t('td_not_found'))));
     }
     final text = _buildText(trip);
 
@@ -68,7 +70,7 @@ class ShareScreen extends ConsumerWidget {
                       icon: Icon(Icons.arrow_back, color: p.ink),
                       onPressed: () => Navigator.of(context).pop()),
                   const Spacer(),
-                  Text('SHARE CHECKLIST',
+                  Text(context.t('share_title'),
                       style: AppText.mono(12, color: p.inkMuted, letterSpacing: 1.5)),
                   const Spacer(),
                   const SizedBox(width: 40),
@@ -90,7 +92,7 @@ class ShareScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      '"Not needed" items are left out — whoever you share this with only sees what\'s actually being brought.',
+                      context.t('share_note'),
                       style: AppText.body(12, color: p.slate, height: 1.5),
                     ),
                   ],
@@ -104,18 +106,19 @@ class ShareScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     _ShareButton(
-                      label: '📋 Copy as text',
+                      label: '📋 ${context.t('share_copy')}',
                       filled: true,
                       onTap: () async {
+                        final copied = context.t('share_copied');
                         await Clipboard.setData(ClipboardData(text: text));
-                        flash('✓ Copied to clipboard');
+                        flash(copied);
                       },
                     ),
                     const SizedBox(height: 10),
                     _ShareButton(
-                      label: '📄 Export as PDF',
+                      label: '📄 ${context.t('share_pdf')}',
                       filled: false,
-                      onTap: () => flash('PDF export — coming in a later version'),
+                      onTap: () => flash(context.t('share_pdf_soon')),
                     ),
                   ],
                 ),

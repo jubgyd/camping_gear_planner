@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/packing_list.dart';
 import '../models/trip.dart';
 import '../models/trip_meta.dart';
@@ -201,12 +202,12 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                       icon: Icon(Icons.close, color: p.ink),
                       onPressed: () => Navigator.of(context).pop()),
                   const Spacer(),
-                  Text(widget.isEditing ? 'EDIT TRIP' : 'NEW TRIP',
+                  Text(context.t(widget.isEditing ? 'addtrip_edit' : 'addtrip_new'),
                       style: AppText.mono(12, color: p.inkMuted, letterSpacing: 1.5)),
                   const Spacer(),
                   TextButton(
                     onPressed: _valid ? _save : null,
-                    child: Text('Save',
+                    child: Text(context.t('common_save'),
                         style: AppText.mono(14,
                             color: _valid ? p.rust : p.slate,
                             weight: FontWeight.w500)),
@@ -228,7 +229,7 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                       decoration: InputDecoration(
                         isDense: true,
                         border: InputBorder.none,
-                        hintText: 'Name your trip',
+                        hintText: context.t('addtrip_name_hint'),
                         hintStyle: AppText.display(30, color: p.slate),
                         enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: p.border, width: 2)),
@@ -237,59 +238,59 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    const SectionLabel('Destination'),
+                    SectionLabel(context.t('sec_destination')),
                     const SizedBox(height: 12),
                     _CountryGrid(
                         selected: _country,
                         onSelect: (c) => setState(() => _country = c)),
                     const SizedBox(height: 28),
-                    const SectionLabel('Campsite (optional)'),
+                    SectionLabel(context.t('sec_campsite')),
                     const SizedBox(height: 12),
                     _TextBox(
                         controller: _location,
-                        hint: 'Place or campsite name',
+                        hint: context.t('addtrip_place_hint'),
                         icon: Icons.place_outlined),
                     const SizedBox(height: 8),
                     _TextBox(
                         controller: _locationLink,
-                        hint: 'Link (maps, booking, website)',
+                        hint: context.t('addtrip_link_hint'),
                         icon: Icons.link,
                         keyboardType: TextInputType.url),
                     const SizedBox(height: 28),
-                    const SectionLabel('Season'),
+                    SectionLabel(context.t('sec_season')),
                     const SizedBox(height: 12),
                     _SeasonChips(
                         selected: _season,
                         onSelect: (s) => setState(() => _season = s)),
                     const SizedBox(height: 28),
-                    const SectionLabel('Expected weather (optional)'),
+                    SectionLabel(context.t('sec_weather')),
                     const SizedBox(height: 12),
                     _TextBox(
                         controller: _weather,
-                        hint: 'e.g. cold nights ~0°C, rain likely',
+                        hint: context.t('addtrip_weather_hint'),
                         icon: Icons.cloud_outlined),
                     const SizedBox(height: 28),
-                    const SectionLabel('Camping style'),
+                    SectionLabel(context.t('sec_style')),
                     const SizedBox(height: 12),
                     _StyleGrid(
                         selected: _style,
                         onSelect: (s) => setState(() => _style = s)),
                     const SizedBox(height: 28),
-                    const SectionLabel("Who's going"),
+                    SectionLabel(context.t('sec_whosgoing')),
                     const SizedBox(height: 12),
                     _TypeRow(
                         selected: _type,
                         onSelect: (t) => setState(() => _type = t)),
                     const SizedBox(height: 28),
-                    const SectionLabel('Party size (optional)'),
+                    SectionLabel(context.t('sec_party')),
                     const SizedBox(height: 12),
                     _TextBox(
                         controller: _partySize,
-                        hint: 'How many people, e.g. 4',
+                        hint: context.t('addtrip_party_hint'),
                         icon: Icons.groups_outlined,
                         keyboardType: TextInputType.number),
                     const SizedBox(height: 28),
-                    const SectionLabel('Dates (optional)'),
+                    SectionLabel(context.t('sec_dates')),
                     const SizedBox(height: 12),
                     _DateRow(
                       start: _start,
@@ -299,14 +300,14 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                     if (_start != null) ...[
                       const SizedBox(height: 10),
                       _ToggleTile(
-                        label: '📅 Add to calendar',
+                        label: context.t('addtrip_cal'),
                         on: _addCalendar,
                         onTap: () =>
                             setState(() => _addCalendar = !_addCalendar),
                       ),
                       const SizedBox(height: 8),
                       _ToggleTile(
-                        label: '🔔 Remind me before departure',
+                        label: context.t('addtrip_remind'),
                         on: _reminderOn,
                         onTap: () => setState(() => _reminderOn = !_reminderOn),
                       ),
@@ -319,21 +320,21 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                       ],
                     ],
                     const SizedBox(height: 28),
-                    const SectionLabel('Budget (optional)'),
+                    SectionLabel(context.t('sec_budget')),
                     const SizedBox(height: 12),
                     _BudgetField(controller: _budget),
                     const SizedBox(height: 28),
-                    const SectionLabel('Notes (optional)'),
+                    SectionLabel(context.t('sec_notes')),
                     const SizedBox(height: 12),
                     _TextBox(
                         controller: _notes,
-                        hint: 'Meeting point, who\'s driving, reservations…',
+                        hint: context.t('addtrip_notes_hint'),
                         maxLines: 4),
                     // "Start from" seeds a checklist — creation only; editing a
                     // trip must not clobber the existing checklist.
                     if (!widget.isEditing) ...[
                       const SizedBox(height: 28),
-                      const SectionLabel('Start from'),
+                      SectionLabel(context.t('sec_startfrom')),
                       const SizedBox(height: 12),
                       _StartFromChips(
                         lists: ref.watch(availableListsProvider),
@@ -341,8 +342,7 @@ class _AddTripScreenState extends ConsumerState<AddTripScreen> {
                         onSelect: (l) => setState(() => _startList = l),
                       ),
                       const SizedBox(height: 24),
-                      Text(
-                          'A list seeds your checklist; you can still add from suggestions or your gear afterward.',
+                      Text(context.t('addtrip_startfrom_help'),
                           style: AppText.body(12, color: p.slate, height: 1.5)),
                     ],
                   ],
@@ -564,7 +564,7 @@ class _DateRow extends StatelessWidget {
                     border: Border.all(color: p.border, width: 1.5),
                   ),
                   child: Text(
-                    value == null ? 'Pick' : fmtDateRange(value, value)!,
+                    value == null ? context.t('addtrip_pick') : fmtDateRange(value, value)!,
                     style: AppText.mono(13,
                         color: value == null ? p.slate : p.ink),
                   ),
@@ -575,9 +575,9 @@ class _DateRow extends StatelessWidget {
         );
     return Row(
       children: [
-        field('Start', start, true),
+        field(context.t('addtrip_start'), start, true),
         const SizedBox(width: 12),
-        field('End', end, false),
+        field(context.t('addtrip_end'), end, false),
       ],
     );
   }
@@ -607,7 +607,7 @@ class _ToggleTile extends StatelessWidget {
             Flexible(
                 child: Text(label,
                     style: AppText.body(12.5, color: on ? p.moss : p.ink))),
-            Text(on ? 'On' : 'Off',
+            Text(context.t(on ? 'addtrip_on' : 'addtrip_off'),
                 style: AppText.body(12, color: on ? p.moss : p.slate)),
           ],
         ),
@@ -639,7 +639,7 @@ class _ReminderDayRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: days == d ? p.ink : p.border),
                 ),
-                child: Text('${d}d before',
+                child: Text(context.t('addtrip_days_before').replaceFirst('{d}', '$d'),
                     style: AppText.mono(11, color: days == d ? p.bg : p.ink)),
               ),
             ),
@@ -695,10 +695,14 @@ class _StartFromChips extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        chip('Blank', 'leerer Start', selected == null, () => onSelect(null)),
+        chip(context.t('addtrip_blank'), context.t('addtrip_blank_sub'),
+            selected == null, () => onSelect(null)),
         for (final l in lists)
-          chip(l.name, '${l.itemCount} items · ${l.builtin ? 'Vorlage' : 'Eigene'}',
-              selected?.id == l.id, () => onSelect(l)),
+          chip(
+              l.name,
+              '${l.itemCount} ${context.t('addtrip_items')} · ${l.builtin ? context.t('addtrip_template') : context.t('addtrip_custom')}',
+              selected?.id == l.id,
+              () => onSelect(l)),
       ],
     );
   }
@@ -787,7 +791,7 @@ class _BudgetField extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
-                hintText: 'e.g. 180',
+                hintText: context.t('addtrip_budget_hint'),
                 hintStyle: AppText.mono(14, color: p.slate),
               ),
             ),

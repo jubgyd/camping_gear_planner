@@ -39,6 +39,13 @@ final themeModeProvider = Provider<ThemeMode>((ref) {
   return (data?.settings.darkMode ?? false) ? ThemeMode.dark : ThemeMode.light;
 });
 
+/// Current UI language code ('de'/'en') from persisted settings. Only notifies
+/// when the language actually changes, so the app re-renders on toggle.
+final languageProvider = Provider<String>((ref) {
+  final data = ref.watch(appDataProvider).valueOrNull;
+  return data?.settings.language ?? 'de';
+});
+
 /// All starting lists offered at trip creation: built-in premades first, then
 /// the user's saved custom lists.
 final availableListsProvider = Provider<List<PackingList>>((ref) {

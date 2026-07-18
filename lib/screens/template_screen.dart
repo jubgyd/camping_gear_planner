@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/template.dart';
 import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
@@ -48,7 +49,8 @@ class _TemplateScreenState extends ConsumerState<TemplateScreen> {
                 IconButton(
                     icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                     onPressed: () => Navigator.of(context).pop()),
-                Text('Vorschläge', style: AppText.display(18, color: p.onHeader)),
+                Text(context.t('template_title'),
+                    style: AppText.display(18, color: p.onHeader)),
                 const Spacer(),
                 if (canAdd && !_showAllStyles && trip.campStyle != null)
                   TagPill(
@@ -75,9 +77,9 @@ class _TemplateScreenState extends ConsumerState<TemplateScreen> {
                           onPressed: () =>
                               setState(() => _showAllStyles = !_showAllStyles),
                           child: Text(
-                            _showAllStyles
-                                ? '‹ Nur diesen Stil zeigen'
-                                : 'Alle Stile anzeigen ›',
+                            context.t(_showAllStyles
+                                ? 'template_show_this'
+                                : 'template_show_all'),
                             style: AppText.mono(12, color: p.inkMuted),
                           ),
                         ),
@@ -129,7 +131,7 @@ class _TemplateScreenState extends ConsumerState<TemplateScreen> {
                   ScaffoldMessenger.of(context)
                     ..clearSnackBars()
                     ..showSnackBar(SnackBar(
-                        content: Text('Added ${it.name}'),
+                        content: Text(context.t('common_added').replaceFirst('{name}', it.name)),
                         duration: const Duration(milliseconds: 900)));
                 },
               ),
@@ -171,7 +173,7 @@ class _TemplateRow extends StatelessWidget {
                             Text(item.name, style: AppText.body(13.5, color: p.ink))),
                     if (item.isUniversal) ...[
                       const SizedBox(width: 6),
-                      Text('· universal', style: AppText.body(11, color: p.slate)),
+                      Text('· ${context.t('tmpl_universal')}', style: AppText.body(11, color: p.slate)),
                     ],
                   ],
                 ),
@@ -197,7 +199,7 @@ class _TemplateRow extends StatelessWidget {
                   color: added ? p.mossSoft : p.rust,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(added ? 'Added' : '+ Add',
+                child: Text(context.t(added ? 'tmpl_added' : 'tmpl_add'),
                     style: AppText.mono(12,
                         color: added ? p.moss : Colors.white)),
               ),

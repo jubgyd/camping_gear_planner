@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/shopping_entry.dart';
 import '../state/app_controller.dart';
 import '../state/shopping_view.dart';
@@ -31,18 +32,20 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add to shopping list'),
+        title: Text(context.t('shopping_add_title')),
         content: TextField(
             controller: field,
             autofocus: true,
-            decoration: const InputDecoration(hintText: 'e.g. Neue Wanderschuhe'),
+            decoration:
+                InputDecoration(hintText: context.t('shopping_add_hint')),
             onSubmitted: (v) => Navigator.pop(ctx, v)),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(context.t('common_cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, field.text),
-              child: const Text('Add')),
+              child: Text(context.t('common_add'))),
         ],
       ),
     );
@@ -85,7 +88,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
     final saved = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Edit “${line.name}”'),
+        title: Text('${context.t('common_edit')} “${line.name}”'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -93,24 +96,27 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
               controller: priceCtl,
               autofocus: true,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                  labelText: 'Price / unit', prefixText: '€ ', hintText: '0.00'),
+              decoration: InputDecoration(
+                  labelText: context.t('item_price_label'),
+                  prefixText: '€ ',
+                  hintText: '0.00'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: qtyCtl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Quantity'),
+              decoration:
+                  InputDecoration(labelText: context.t('item_quantity')),
             ),
           ],
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(context.t('common_cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Save')),
+              child: Text(context.t('common_save'))),
         ],
       ),
     );
@@ -150,7 +156,8 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Shopping List', style: AppText.display(24, color: p.onHeader)),
+                  Text(context.t('shopping_title'),
+                      style: AppText.display(24, color: p.onHeader)),
                   _RoundIconButton(icon: Icons.add, onTap: _addManual),
                 ],
               ),
@@ -159,7 +166,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (total > 0)
-                    Text('Total to buy: ${fmtPrice(total)}',
+                    Text('${context.t('shopping_total')} ${fmtPrice(total)}',
                         style: AppText.mono(12, color: p.onHeaderMuted))
                   else
                     const SizedBox(),
@@ -175,7 +182,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
         Expanded(
           child: groups.isEmpty
               ? Center(
-                  child: Text('Nothing to buy right now.',
+                  child: Text(context.t('shopping_empty'),
                       style: AppText.body(14, color: p.slate)))
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -198,7 +205,8 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                                         line.tripId!, line.categoryId!, line.id);
                                   }
                                   if (line.totalPrice != null) {
-                                    _flash('+${fmtPrice(line.totalPrice!)} moved to spent');
+                                    _flash(
+                                        '+${fmtPrice(line.totalPrice!)} ${context.t('shopping_moved_to_spent')}');
                                   }
                                 },
                                 onEdit: (line) {
@@ -232,7 +240,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
-                              'Tap the price to update it · tap an item to edit or delete',
+                              context.t('shopping_hint'),
                               textAlign: TextAlign.center,
                               style: AppText.body(11, color: p.slate),
                             ),
@@ -444,8 +452,8 @@ class _SortToggle extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            seg(ShoppingSort.trip, 'Trip'),
-            seg(ShoppingSort.price, 'Preis ↓'),
+            seg(ShoppingSort.trip, context.t('sort_trip')),
+            seg(ShoppingSort.price, context.t('sort_price')),
           ],
         ),
       ),
