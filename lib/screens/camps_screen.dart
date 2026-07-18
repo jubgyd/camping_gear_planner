@@ -48,7 +48,7 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
                     onSave: () => saveBackup(context, ref),
                     onLoad: () => loadBackup(context, ref),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   _RoundIconButton(icon: Icons.add, onTap: _openAddTrip),
                 ],
               ),
@@ -183,28 +183,44 @@ class _ArchivedHeader extends StatelessWidget {
   }
 }
 
-/// Save / load a backup, shown as a round header button with a small menu.
+/// Save / load a backup. A round header button (identical to the + button)
+/// that opens a small menu anchored just beneath itself.
 class _BackupMenuButton extends StatelessWidget {
   const _BackupMenuButton({required this.onSave, required this.onLoad});
   final VoidCallback onSave;
   final VoidCallback onLoad;
 
+  Future<void> _open(BuildContext context) async {
+    final box = context.findRenderObject() as RenderBox;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        box.localToGlobal(box.size.bottomLeft(Offset.zero), ancestor: overlay),
+        box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+    final choice = await showMenu<String>(
+      context: context,
+      position: position,
+      items: const [
+        PopupMenuItem(value: 'save', child: Text('💾  Save a backup')),
+        PopupMenuItem(value: 'load', child: Text('📂  Load a backup')),
+      ],
+    );
+    if (choice == 'save') onSave();
+    if (choice == 'load') onLoad();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
-    return Material(
-      color: Colors.white.withValues(alpha: 0.12),
-      shape: const CircleBorder(),
-      child: PopupMenuButton<String>(
-        tooltip: 'Save or load your plans',
-        icon: Icon(Icons.save_alt, size: 18, color: p.bg),
-        padding: const EdgeInsets.all(10),
-        constraints: const BoxConstraints.tightFor(width: 38, height: 38),
-        onSelected: (v) => v == 'save' ? onSave() : onLoad(),
-        itemBuilder: (_) => const [
-          PopupMenuItem(value: 'save', child: Text('💾  Save a backup')),
-          PopupMenuItem(value: 'load', child: Text('📂  Load a backup')),
-        ],
+    // Builder gives a context whose render object is this button, so the menu
+    // anchors correctly.
+    return Builder(
+      builder: (context) => _RoundIconButton(
+        icon: Icons.save_alt,
+        onTap: () => _open(context),
       ),
     );
   }
