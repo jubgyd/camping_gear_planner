@@ -64,7 +64,7 @@ class ContourHeader extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: CustomPaint(painter: _ContourPainter(p.bg, opacity)),
+              child: CustomPaint(painter: _ContourPainter(p.onHeader, opacity)),
             ),
             Padding(padding: padding, child: child),
           ],

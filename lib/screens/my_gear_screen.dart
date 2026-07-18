@@ -49,10 +49,10 @@ class _MyGearScreenState extends ConsumerState<MyGearScreen> {
             child: Row(
               children: [
                 IconButton(
-                    icon: Icon(Icons.arrow_back, color: p.bg, size: 20),
+                    icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                     onPressed: () => Navigator.of(context).pop()),
                 Text(_picker ? 'Aus meinem Fundus' : 'My Gear',
-                    style: AppText.display(18, color: p.bg)),
+                    style: AppText.display(18, color: p.onHeader)),
                 const Spacer(),
                 _RoundIconButton(
                     icon: Icons.add, onTap: () => _editGear(context, c, null)),
@@ -236,7 +236,7 @@ class _RoundIconButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: SizedBox(
-            width: 38, height: 38, child: Icon(icon, size: 18, color: p.bg)),
+            width: 38, height: 38, child: Icon(icon, size: 18, color: p.onHeader)),
       ),
     );
   }

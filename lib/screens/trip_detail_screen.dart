@@ -199,18 +199,18 @@ class _Header extends ConsumerWidget {
           Row(
             children: [
               IconButton(
-                icon: Icon(Icons.arrow_back, color: p.bg, size: 20),
+                icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              Text('Checkliste', style: AppText.body(14, color: p.bg)),
+              Text('Checkliste', style: AppText.body(14, color: p.onHeader)),
               const Spacer(),
               IconButton(
-                icon: Icon(Icons.add, color: p.bg, size: 20),
+                icon: Icon(Icons.add, color: p.onHeader, size: 20),
                 tooltip: 'Add items',
                 onPressed: () => _showAddSheet(context, trip.id),
               ),
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_horiz, color: p.bg, size: 20),
+                icon: Icon(Icons.more_horiz, color: p.onHeader, size: 20),
                 onSelected: (v) {
                   if (v == 'share') {
                     Navigator.of(context).push(MaterialPageRoute(
@@ -238,7 +238,7 @@ class _Header extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(trip.name, style: AppText.display(22, color: p.bg)),
+          Text(trip.name, style: AppText.display(22, color: p.onHeader)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
@@ -310,7 +310,7 @@ class _Header extends ConsumerWidget {
             children: [
               Expanded(child: ProgressRidge(pct: trip.readyPercent, onDark: true)),
               const SizedBox(width: 12),
-              Text('${trip.readyPercent}%', style: AppText.mono(12, color: p.bg)),
+              Text('${trip.readyPercent}%', style: AppText.mono(12, color: p.onHeader)),
             ],
           ),
           const SizedBox(height: 6),

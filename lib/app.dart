@@ -94,7 +94,7 @@ class _SideRail extends StatelessWidget {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text('Camp Gear',
-                        style: AppText.display(18, color: p.bg)),
+                        style: AppText.display(18, color: p.onHeader)),
                   ),
                 ],
               ),

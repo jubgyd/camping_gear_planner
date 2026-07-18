@@ -28,9 +28,9 @@ class ListsScreen extends ConsumerWidget {
             child: Row(
               children: [
                 IconButton(
-                    icon: Icon(Icons.arrow_back, color: p.bg, size: 20),
+                    icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                     onPressed: () => Navigator.of(context).pop()),
-                Text('Lists', style: AppText.display(18, color: p.bg)),
+                Text('Lists', style: AppText.display(18, color: p.onHeader)),
               ],
             ),
           ),

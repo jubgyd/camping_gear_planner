@@ -26,7 +26,7 @@ class SettingsScreen extends ConsumerWidget {
       children: [
         ContourHeader(
           padding: const EdgeInsets.fromLTRB(24, 44, 24, 22),
-          child: Text('Settings', style: AppText.display(26, color: p.bg)),
+          child: Text('Settings', style: AppText.display(26, color: p.onHeader)),
         ),
         Expanded(
           child: ListView(

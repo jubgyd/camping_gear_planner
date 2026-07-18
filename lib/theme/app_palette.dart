@@ -22,6 +22,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.border,
     required this.headerBg,
     required this.selectedBg,
+    required this.onHeader,
     required this.onHeaderMuted,
     required this.isDark,
   });
@@ -39,6 +40,10 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color border;
   final Color headerBg;
   final Color selectedBg;
+
+  /// Foreground for titles/icons on the dark header band. The header is dark in
+  /// BOTH themes, so this stays light in both (unlike [bg]).
+  final Color onHeader;
 
   /// Muted text color that reads well on the dark header band in both themes.
   final Color onHeaderMuted;
@@ -58,6 +63,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     border: Color(0xFFDCDCC9),
     headerBg: Color(0xFF23291D),
     selectedBg: Color(0xFF23291D),
+    onHeader: Color(0xFFEDEFE5),
     onHeaderMuted: Color(0xFFC8CCB8),
     isDark: false,
   );
@@ -76,6 +82,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     border: Color(0xFF333827),
     headerBg: Color(0xFF11140F),
     selectedBg: Color(0xFF7FB37A),
+    onHeader: Color(0xFFEDEFE5),
     onHeaderMuted: Color(0xFFC8CCB8),
     isDark: true,
   );

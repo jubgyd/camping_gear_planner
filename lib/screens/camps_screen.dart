@@ -41,7 +41,7 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Camps', style: AppText.display(26, color: p.bg)),
+              Text('Camps', style: AppText.display(26, color: p.onHeader)),
               Row(
                 children: [
                   _BackupMenuButton(
@@ -243,7 +243,7 @@ class _RoundIconButton extends StatelessWidget {
         child: SizedBox(
           width: 38,
           height: 38,
-          child: Icon(icon, size: 18, color: p.bg),
+          child: Icon(icon, size: 18, color: p.onHeader),
         ),
       ),
     );

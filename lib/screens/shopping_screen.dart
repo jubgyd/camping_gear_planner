@@ -150,7 +150,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Shopping List', style: AppText.display(24, color: p.bg)),
+                  Text('Shopping List', style: AppText.display(24, color: p.onHeader)),
                   _RoundIconButton(icon: Icons.add, onTap: _addManual),
                 ],
               ),
@@ -429,7 +429,7 @@ class _SortToggle extends StatelessWidget {
           color: active ? Colors.white.withValues(alpha: 0.18) : Colors.transparent,
           child: Text(label,
               style: AppText.mono(10,
-                  color: active ? p.bg : const Color(0xFF9BA08C))),
+                  color: active ? p.onHeader : const Color(0xFF9BA08C))),
         ),
       );
     }
@@ -468,7 +468,7 @@ class _RoundIconButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: SizedBox(
-            width: 38, height: 38, child: Icon(icon, size: 18, color: p.bg)),
+            width: 38, height: 38, child: Icon(icon, size: 18, color: p.onHeader)),
       ),
     );
   }

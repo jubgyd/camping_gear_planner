@@ -46,15 +46,15 @@ class _TemplateScreenState extends ConsumerState<TemplateScreen> {
             child: Row(
               children: [
                 IconButton(
-                    icon: Icon(Icons.arrow_back, color: p.bg, size: 20),
+                    icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
                     onPressed: () => Navigator.of(context).pop()),
-                Text('Vorschläge', style: AppText.display(18, color: p.bg)),
+                Text('Vorschläge', style: AppText.display(18, color: p.onHeader)),
                 const Spacer(),
                 if (canAdd && !_showAllStyles && trip.campStyle != null)
                   TagPill(
                     text: '${trip.campStyle!.icon} ${trip.campStyle!.label}',
                     bg: Colors.white.withValues(alpha: 0.14),
-                    fg: p.bg,
+                    fg: p.onHeader,
                     mono: false,
                   ),
               ],
