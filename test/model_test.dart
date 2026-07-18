@@ -65,6 +65,15 @@ void main() {
       expect(fmtPrice(39), '€39');
       expect(fmtPrice(42.5), '€42.50');
     });
+    // Regression: DateFormat with an uninitialized named locale (e.g. 'en_GB')
+    // threw LocaleDataException the first time a picked date was formatted,
+    // crashing the trip form into a blank error box.
+    test('date range formats without needing locale init', () {
+      expect(fmtDateRange(DateTime(2026, 8, 5), DateTime(2026, 8, 5)),
+          '05 Aug 2026');
+      expect(fmtDateRange(DateTime(2026, 8, 5), DateTime(2026, 8, 7)),
+          '05 Aug – 07 Aug 2026');
+    });
   });
 
   group('JSON round-trip (GDD §12)', () {

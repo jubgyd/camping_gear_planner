@@ -14,8 +14,12 @@ String fmtWeight(int grams) {
 String fmtPrice(num n) =>
     '€${n % 1 == 0 ? n.toStringAsFixed(0) : n.toStringAsFixed(2)}';
 
-final _dm = DateFormat('dd MMM', 'en_GB');
-final _dmy = DateFormat('dd MMM yyyy', 'en_GB');
+// Use the default (en_US) locale, which intl always has data for. A named
+// locale like 'en_GB' would need initializeDateFormatting() and otherwise
+// throws LocaleDataException the first time a date is formatted. The patterns
+// are explicit, so the rendered output ("05 Aug 2026") is unchanged.
+final _dm = DateFormat('dd MMM');
+final _dmy = DateFormat('dd MMM yyyy');
 
 /// "05 Aug 2026" for a single day, "05 Aug – 07 Aug 2026" for a range.
 String? fmtDateRange(DateTime? start, DateTime? end) {
