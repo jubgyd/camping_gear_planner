@@ -95,8 +95,12 @@ class _SideRail extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
               child: Row(
                 children: [
-                  const Text('⛰', style: TextStyle(fontSize: 22)),
-                  const SizedBox(width: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset('assets/icon/app_icon.png',
+                        width: 34, height: 34, fit: BoxFit.cover),
+                  ),
+                  const SizedBox(width: 10),
                   Flexible(
                     child: Text(context.t('app_name_short'),
                         style: AppText.display(18, color: p.onHeader)),
