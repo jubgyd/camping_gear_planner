@@ -175,6 +175,20 @@ void main() {
     expect(container.read(appDataProvider).value!.gearLibrary, isEmpty);
   });
 
+  test('deleting a trip removes only that trip', () async {
+    const seed = AppData(trips: [
+      Trip(id: 't1', name: 'A'),
+      Trip(id: 't2', name: 'B'),
+    ]);
+    final (container, c) = await _boot(seed);
+    addTearDown(container.dispose);
+
+    await c.deleteTrip('t1');
+
+    expect(
+        container.read(appDataProvider).value!.trips.map((t) => t.id), ['t2']);
+  });
+
   test('editing a trip updates its metadata but keeps the checklist', () async {
     const seed = AppData(trips: [
       Trip(id: 't1', name: 'Old', countryCode: 'DE', seasonKey: 'summer',

@@ -153,6 +153,33 @@ class _Header extends ConsumerWidget {
     }
   }
 
+  Future<void> _confirmDelete(
+      BuildContext context, AppController c, Trip trip) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete trip?'),
+        content: Text(
+            '“${trip.name}” and its whole checklist will be permanently deleted. '
+            'This cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await c.deleteTrip(trip.id);
+    // Leave the (now-gone) detail screen and return to the trip list.
+    if (context.mounted) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = context.palette;
@@ -226,6 +253,8 @@ class _Header extends ConsumerWidget {
                     _saveAsList(context, c, trip);
                   } else if (v == 'save_file') {
                     saveTripToFile(context, ref, trip);
+                  } else if (v == 'delete') {
+                    _confirmDelete(context, c, trip);
                   }
                 },
                 itemBuilder: (_) => [
@@ -238,6 +267,8 @@ class _Header extends ConsumerWidget {
                   PopupMenuItem(
                       value: 'archive',
                       child: Text(trip.archived ? '↩ Restore trip' : '🗄 Archive trip')),
+                  const PopupMenuItem(
+                      value: 'delete', child: Text('🗑 Delete trip')),
                 ],
               ),
             ],

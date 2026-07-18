@@ -6,6 +6,7 @@ import '../state/app_controller.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
 import '../util/backup.dart';
+import '../util/motion.dart';
 import '../widgets/contour_header.dart';
 import '../widgets/trip_card.dart';
 import '../widgets/ui_kit.dart';
@@ -21,7 +22,7 @@ class CampsScreen extends ConsumerStatefulWidget {
 }
 
 class _CampsScreenState extends ConsumerState<CampsScreen> {
-  bool _archivedExpanded = false;
+  int _tab = 0; // 0 = active, 1 = archived
 
   void _openAddTrip() =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddTripScreen()));
@@ -63,6 +64,7 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
               final active = data.trips.where((t) => !t.archived).toList();
               final archived = data.trips.where((t) => t.archived).toList();
               final wide = isWide(context);
+              final showing = _tab == 0 ? active : archived;
 
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -72,33 +74,28 @@ class _CampsScreenState extends ConsumerState<CampsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (active.isEmpty)
+                        _TripTabs(
+                          index: _tab,
+                          activeCount: active.length,
+                          archivedCount: archived.length,
+                          onSelect: (i) => setState(() => _tab = i),
+                        ),
+                        const SizedBox(height: 16),
+                        if (showing.isEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 48),
-                            child: Text('No active trips — tap + to plan one.',
+                            child: Text(
+                                _tab == 0
+                                    ? 'No active trips — tap + to plan one.'
+                                    : 'No archived trips yet.',
                                 textAlign: TextAlign.center,
                                 style: AppText.body(14, color: p.slate)),
                           ),
                         _TripGrid(
-                            trips: active,
+                            trips: showing,
                             wide: wide,
                             onOpen: _openTrip,
-                            muted: false),
-                        if (archived.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          _ArchivedHeader(
-                            count: archived.length,
-                            expanded: _archivedExpanded,
-                            onTap: () => setState(
-                                () => _archivedExpanded = !_archivedExpanded),
-                          ),
-                          if (_archivedExpanded)
-                            _TripGrid(
-                                trips: archived,
-                                wide: wide,
-                                onOpen: _openTrip,
-                                muted: true),
-                        ],
+                            muted: _tab == 1),
                       ],
                     ),
                   ),
@@ -152,33 +149,51 @@ class _TripGrid extends StatelessWidget {
   }
 }
 
-class _ArchivedHeader extends StatelessWidget {
-  const _ArchivedHeader({
-    required this.count,
-    required this.expanded,
-    required this.onTap,
+/// Active / Archived segmented tabs at the top of the trip list.
+class _TripTabs extends StatelessWidget {
+  const _TripTabs({
+    required this.index,
+    required this.activeCount,
+    required this.archivedCount,
+    required this.onSelect,
   });
-  final int count;
-  final bool expanded;
-  final VoidCallback onTap;
+  final int index;
+  final int activeCount;
+  final int archivedCount;
+  final ValueChanged<int> onSelect;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('ARCHIVED ($count)',
-                style: AppText.mono(12, color: p.inkMuted, letterSpacing: 1.5)),
-            Icon(expanded ? Icons.expand_less : Icons.expand_more,
-                size: 18, color: p.slate),
-          ],
+    Widget seg(int i, String label) {
+      final on = index == i;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => onSelect(i),
+          child: AnimatedContainer(
+            duration: Motion.base,
+            curve: Motion.curve,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: on ? p.selectedBg : p.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: on ? p.selectedBg : p.border, width: 1.5),
+            ),
+            child: Text(label,
+                style: AppText.body(13, color: on ? p.bg : p.ink)),
+          ),
         ),
-      ),
+      );
+    }
+
+    return Row(
+      children: [
+        seg(0, 'Active ($activeCount)'),
+        const SizedBox(width: 8),
+        seg(1, 'Archived ($archivedCount)'),
+      ],
     );
   }
 }
