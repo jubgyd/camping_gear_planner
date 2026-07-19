@@ -5,7 +5,9 @@ import 'package:camp_gear_planner/models/category.dart';
 import 'package:camp_gear_planner/models/gear_item.dart';
 import 'package:camp_gear_planner/models/item.dart';
 import 'package:camp_gear_planner/models/item_status.dart';
+import 'package:camp_gear_planner/models/packing_list.dart';
 import 'package:camp_gear_planner/models/shopping_entry.dart';
+import 'package:camp_gear_planner/models/template.dart';
 import 'package:camp_gear_planner/models/trip.dart';
 import 'package:camp_gear_planner/state/app_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -324,5 +326,44 @@ void main() {
     expect(t.weather, 'cold nights ~0°C');
     expect(t.partySize, 3);
     expect(t.notes, 'meet at 8am');
+  });
+
+  test('adding, editing and deleting a custom list', () async {
+    const seed = AppData();
+    final (container, c) = await _boot(seed);
+    addTearDown(container.dispose);
+
+    // Add a new list.
+    await c.addPackingList(const PackingList(
+      id: 'l1',
+      name: 'Wochenende',
+      categories: [
+        TemplateCategory(id: 'cat1', name: 'Schlafen', items: [
+          TemplateItem(id: 'ti1', name: 'Zelt', weightGrams: 1400),
+        ]),
+      ],
+    ));
+    var lists = container.read(appDataProvider).value!.packingLists;
+    expect(lists.single.name, 'Wochenende');
+    expect(lists.single.itemCount, 1);
+
+    // Edit it (rename + add an item).
+    await c.updatePackingList(const PackingList(
+      id: 'l1',
+      name: 'Wochenende XL',
+      categories: [
+        TemplateCategory(id: 'cat1', name: 'Schlafen', items: [
+          TemplateItem(id: 'ti1', name: 'Zelt', weightGrams: 1400),
+          TemplateItem(id: 'ti2', name: 'Schlafsack'),
+        ]),
+      ],
+    ));
+    lists = container.read(appDataProvider).value!.packingLists;
+    expect(lists.single.name, 'Wochenende XL');
+    expect(lists.single.itemCount, 2);
+
+    // Delete it.
+    await c.deletePackingList('l1');
+    expect(container.read(appDataProvider).value!.packingLists, isEmpty);
   });
 }

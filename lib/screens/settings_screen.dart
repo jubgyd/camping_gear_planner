@@ -9,7 +9,6 @@ import '../util/backup.dart';
 import '../util/motion.dart';
 import '../widgets/contour_header.dart';
 import '../widgets/ui_kit.dart';
-import 'lists_screen.dart';
 import 'my_gear_screen.dart';
 import 'template_screen.dart';
 
@@ -64,12 +63,6 @@ class SettingsScreen extends ConsumerWidget {
                       label: context.t('settings_mygear'),
                       onTap: () => Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => const MyGearScreen())),
-                    ),
-                    const SizedBox(height: 8),
-                    _ActionRow(
-                      label: context.t('settings_lists'),
-                      onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ListsScreen())),
                     ),
                     const SizedBox(height: 8),
                     _ActionRow(

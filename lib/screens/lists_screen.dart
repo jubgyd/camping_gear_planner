@@ -8,11 +8,20 @@ import '../theme/app_palette.dart';
 import '../theme/app_text.dart';
 import '../widgets/contour_header.dart';
 import '../widgets/ui_kit.dart';
+import 'list_edit_screen.dart';
 
-/// Manage starting lists: built-in premades (read-only) and the user's saved
-/// custom lists (deletable). Lists are applied when creating a trip.
+/// The Lists tab (left-bar nav): built-in premades (read-only, duplicable) and
+/// the user's custom lists (editable + deletable). Lists seed a trip's whole
+/// checklist when creating a trip.
 class ListsScreen extends ConsumerWidget {
   const ListsScreen({super.key});
+
+  void _open(BuildContext context, PackingList l) =>
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => ListEditScreen(existing: l, readOnly: l.builtin)));
+
+  void _newList(BuildContext context) => Navigator.of(context)
+      .push(MaterialPageRoute(builder: (_) => const ListEditScreen()));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,55 +29,61 @@ class ListsScreen extends ConsumerWidget {
     final lists = ref.watch(availableListsProvider);
     final c = ref.read(appDataProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: p.bg,
-      body: Column(
-        children: [
-          ContourHeader(
-            padding: const EdgeInsets.fromLTRB(16, 40, 20, 20),
-            child: Row(
-              children: [
-                IconButton(
-                    icon: Icon(Icons.arrow_back, color: p.onHeader, size: 20),
-                    onPressed: () => Navigator.of(context).pop()),
-                Text(context.t('lists_title'),
-                    style: AppText.display(18, color: p.onHeader)),
-              ],
-            ),
+    return Column(
+      children: [
+        ContourHeader(
+          padding: const EdgeInsets.fromLTRB(24, 44, 24, 22),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(context.t('lists_title'),
+                  style: AppText.display(26, color: p.onHeader)),
+              _RoundIconButton(
+                  icon: Icons.add, onTap: () => _newList(context)),
+            ],
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              children: [
-                ContentColumn(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              ContentColumn(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8, left: 4),
+                      child: Text(
+                        context.t('lists_help'),
+                        style: AppText.body(12, color: p.slate, height: 1.5),
+                      ),
+                    ),
+                    for (final l in lists)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 8, left: 4),
-                        child: Text(
-                          context.t('lists_help'),
-                          style: AppText.body(12, color: p.slate, height: 1.5),
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _ListCard(
+                          list: l,
+                          onTap: () => _open(context, l),
+                          onDelete:
+                              l.builtin ? null : () => _confirmDelete(context, c, l),
+                          onDuplicate: l.builtin
+                              ? () {
+                                  final copy = duplicateList(
+                                      ref, l, context.t('list_copy_suffix'));
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (_) =>
+                                          ListEditScreen(existing: copy)));
+                                }
+                              : null,
                         ),
                       ),
-                      for (final l in lists)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _ListCard(
-                            list: l,
-                            onDelete: l.builtin
-                                ? null
-                                : () => _confirmDelete(context, c, l),
-                          ),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -94,14 +109,22 @@ class ListsScreen extends ConsumerWidget {
 }
 
 class _ListCard extends StatelessWidget {
-  const _ListCard({required this.list, this.onDelete});
+  const _ListCard({
+    required this.list,
+    required this.onTap,
+    this.onDelete,
+    this.onDuplicate,
+  });
   final PackingList list;
+  final VoidCallback onTap;
   final VoidCallback? onDelete;
+  final VoidCallback? onDuplicate;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
     return SurfaceCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
@@ -134,12 +157,42 @@ class _ListCard extends StatelessWidget {
               ],
             ),
           ),
+          if (onDuplicate != null)
+            IconButton(
+              tooltip: context.t('list_duplicate'),
+              icon: Icon(Icons.copy_all_outlined, size: 18, color: p.slate),
+              onPressed: onDuplicate,
+            ),
           if (onDelete != null)
             IconButton(
               icon: Icon(Icons.delete_outline, size: 18, color: p.slate),
               onPressed: onDelete,
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _RoundIconButton extends StatelessWidget {
+  const _RoundIconButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Material(
+      color: Colors.white.withValues(alpha: 0.12),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 38,
+          height: 38,
+          child: Icon(icon, size: 18, color: p.onHeader),
+        ),
       ),
     );
   }

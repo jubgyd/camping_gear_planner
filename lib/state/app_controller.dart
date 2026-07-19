@@ -332,6 +332,17 @@ class AppController extends AsyncNotifier<AppData> {
         ]);
       });
 
+  /// Adds a user-created custom list (from "New list" or a duplicate).
+  Future<void> addPackingList(PackingList list) => _update(
+      (d) => d.copyWith(packingLists: [...d.packingLists, list]));
+
+  /// Replaces an existing custom list by id (List Editor "Save"). Built-in
+  /// premades aren't stored in [AppData.packingLists], so they're never matched.
+  Future<void> updatePackingList(PackingList list) => _update((d) => d.copyWith(
+      packingLists: [
+        for (final l in d.packingLists) if (l.id == list.id) list else l,
+      ]));
+
   Future<void> deletePackingList(String id) => _update((d) => d.copyWith(
       packingLists: d.packingLists.where((l) => l.id != id).toList()));
 

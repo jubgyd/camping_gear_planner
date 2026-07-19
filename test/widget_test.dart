@@ -40,9 +40,9 @@ void main() {
     // Let the AsyncNotifier resolve its initial load.
     await tester.pumpAndSettle();
 
-    // Three-tab bottom nav renders (GDD §9).
+    // Four-tab bottom nav renders (Camps · Lists · Shopping · Settings).
     expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.byType(NavigationDestination), findsNWidgets(3));
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
 
     // Camps tab (index 0) shows its empty-state copy (English).
     expect(find.textContaining('No active trips'), findsOneWidget);

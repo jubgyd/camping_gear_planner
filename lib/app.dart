@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'l10n/app_strings.dart';
 import 'screens/camps_screen.dart';
+import 'screens/lists_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/shopping_screen.dart';
 import 'theme/app_palette.dart';
@@ -21,9 +22,19 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  static const _tabs = [CampsScreen(), ShoppingScreen(), SettingsScreen()];
+  static const _tabs = [
+    CampsScreen(),
+    ListsScreen(),
+    ShoppingScreen(),
+    SettingsScreen()
+  ];
   static const _dests = [
     (icon: Icons.terrain_outlined, sel: Icons.terrain, labelKey: 'nav_camps'),
+    (
+      icon: Icons.checklist_outlined,
+      sel: Icons.checklist,
+      labelKey: 'nav_lists'
+    ),
     (
       icon: Icons.shopping_bag_outlined,
       sel: Icons.shopping_bag,
