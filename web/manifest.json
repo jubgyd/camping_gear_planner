@@ -1,11 +1,11 @@
 {
-    "name": "camp_gear_planner",
-    "short_name": "camp_gear_planner",
+    "name": "Camp Gear Planner",
+    "short_name": "Camp Gear",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#EDEFE5",
+    "theme_color": "#23291D",
+    "description": "Plan camping trips — gear checklists, packing weight, budgets, and a shopping list.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
