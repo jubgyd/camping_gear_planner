@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -342,37 +343,38 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                             context.t('item_fetch_error'),
                             style: AppText.body(12, color: p.inkMuted)),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (_imageFile != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child:
-                                  ProductThumb(_imageFile, size: 64, radius: 10),
-                            ),
-                          TextButton.icon(
-                            onPressed: _pickImage,
-                            icon: Icon(Icons.image_outlined,
-                                size: 18, color: p.rust),
-                            label: Text(context.t('item_pick_image'),
-                                style: AppText.body(13, color: p.rust)),
-                          ),
-                          if (_imageFile != null)
+                    if (!kIsWeb)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            if (_imageFile != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ProductThumb(_imageFile,
+                                    size: 64, radius: 10),
+                              ),
                             TextButton.icon(
-                              onPressed: _removeImage,
-                              icon: Icon(Icons.close,
-                                  size: 16, color: p.inkMuted),
-                              label: Text(context.t('item_image_remove'),
-                                  style: AppText.body(13, color: p.inkMuted)),
+                              onPressed: _pickImage,
+                              icon: Icon(Icons.image_outlined,
+                                  size: 18, color: p.rust),
+                              label: Text(context.t('item_pick_image'),
+                                  style: AppText.body(13, color: p.rust)),
                             ),
-                        ],
+                            if (_imageFile != null)
+                              TextButton.icon(
+                                onPressed: _removeImage,
+                                icon: Icon(Icons.close,
+                                    size: 16, color: p.inkMuted),
+                                label: Text(context.t('item_image_remove'),
+                                    style: AppText.body(13, color: p.inkMuted)),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 22),
                     SectionLabel(context.t('item_quantity')),
                     const SizedBox(height: 10),
