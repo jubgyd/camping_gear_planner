@@ -28,6 +28,10 @@ class ShoppingScreen extends ConsumerStatefulWidget {
 class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
   ShoppingSort _sort = ShoppingSort.trip;
 
+  /// Selected trip picker (Option B). A [ShoppingGroup.key] (trip id or
+  /// `'manual'`), or `null` for "Alle". In-memory only, like [_sort].
+  String? _filterKey;
+
   Future<void> _addManual() async {
     final field = TextEditingController();
     final name = await showDialog<String>(
@@ -143,7 +147,12 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
   Widget build(BuildContext context) {
     final p = context.palette;
     final data = ref.watch(appDataProvider).valueOrNull;
-    final groups = data == null ? <ShoppingGroup>[] : buildShoppingGroups(data, _sort);
+    final allGroups =
+        data == null ? <ShoppingGroup>[] : buildShoppingGroups(data, _sort);
+    // Ignore a stale selection (e.g. the picked trip's last item was bought).
+    final activeKey =
+        allGroups.any((g) => g.key == _filterKey) ? _filterKey : null;
+    final groups = filterShoppingGroups(allGroups, activeKey);
     final total = shoppingTotal(groups);
     final c = ref.read(appDataProvider.notifier);
 
@@ -180,6 +189,12 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
             ],
           ),
         ),
+        if (allGroups.length >= 2)
+          _TripFilterBar(
+            groups: allGroups,
+            activeKey: activeKey,
+            onSelect: (k) => setState(() => _filterKey = k),
+          ),
         Expanded(
           child: groups.isEmpty
               ? Center(
@@ -459,6 +474,66 @@ class _SortToggle extends StatelessWidget {
           children: [
             seg(ShoppingSort.trip, context.t('sort_trip')),
             seg(ShoppingSort.price, context.t('sort_price')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Horizontal trip picker (Option B). "Alle" (null key) plus one pill per
+/// group; tapping a pill narrows the list to that trip. Scrolls when the trips
+/// outrun the width.
+class _TripFilterBar extends StatelessWidget {
+  const _TripFilterBar({
+    required this.groups,
+    required this.activeKey,
+    required this.onSelect,
+  });
+  final List<ShoppingGroup> groups;
+  final String? activeKey;
+  final ValueChanged<String?> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+
+    Widget pill(String label, String? key) {
+      final active = key == activeKey;
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: GestureDetector(
+          onTap: () => onSelect(key),
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: Motion.base,
+            curve: Motion.curve,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            decoration: BoxDecoration(
+              color: active ? p.ink : p.surface,
+              borderRadius: BorderRadius.circular(999),
+              border:
+                  Border.all(color: active ? p.ink : p.border, width: 1.5),
+            ),
+            child: Text(label,
+                style: AppText.body(12.5,
+                    color: active ? p.bg : p.ink,
+                    weight: active ? FontWeight.w500 : FontWeight.w400)),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      color: p.bg,
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            pill(context.t('shopping_filter_all'), null),
+            for (final g in groups) pill(g.name, g.key),
           ],
         ),
       ),

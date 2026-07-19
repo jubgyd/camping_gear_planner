@@ -109,3 +109,16 @@ List<ShoppingGroup> buildShoppingGroups(AppData data, ShoppingSort sort) {
 
 double shoppingTotal(List<ShoppingGroup> groups) =>
     groups.fold(0.0, (s, g) => s + g.subtotal);
+
+/// Narrows the shopping list to a single group for the trip picker (Option B).
+///
+/// [selectedKey] is a [ShoppingGroup.key] (a trip id, or `'manual'`), or `null`
+/// for "Alle" (show everything). A key that no longer matches any group — e.g.
+/// the trip's last need-to-buy item was just bought — falls back to all groups,
+/// so the list can never strand the user on an empty selection.
+List<ShoppingGroup> filterShoppingGroups(
+    List<ShoppingGroup> groups, String? selectedKey) {
+  if (selectedKey == null) return groups;
+  if (!groups.any((g) => g.key == selectedKey)) return groups;
+  return groups.where((g) => g.key == selectedKey).toList();
+}
