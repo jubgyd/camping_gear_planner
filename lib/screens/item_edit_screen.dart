@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -133,6 +134,35 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
     final old = _imageFile;
     setState(() => _imageFile = null);
     ImageStore.instance.delete(old);
+  }
+
+  /// Manual fallback for shops that block the automatic image grab: pick an
+  /// image file from disk and copy it into the store.
+  Future<void> _pickImage() async {
+    final failMsg = context.t('item_pick_error');
+    final res = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (res == null || res.files.isEmpty) return; // cancelled
+    final path = res.files.first.path;
+    if (path == null) return;
+    final imported =
+        await ImageStore.instance.importFile(path, basename: _imgBase);
+    if (!mounted) return;
+    if (imported == null) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(
+            content: Text(failMsg),
+            duration: const Duration(milliseconds: 1800)));
+      return;
+    }
+    setState(() {
+      final old = _imageFile;
+      _imageFile = imported;
+      if (old != null && old != imported) ImageStore.instance.delete(old);
+      if (_fetch == _Fetch.empty || _fetch == _Fetch.error) {
+        _fetch = _Fetch.idle;
+      }
+    });
   }
 
   void _save() {
@@ -312,13 +342,27 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                             context.t('item_fetch_error'),
                             style: AppText.body(12, color: p.inkMuted)),
                       ),
-                    if (_imageFile != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Row(
-                          children: [
-                            ProductThumb(_imageFile, size: 64, radius: 10),
-                            const SizedBox(width: 12),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (_imageFile != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child:
+                                  ProductThumb(_imageFile, size: 64, radius: 10),
+                            ),
+                          TextButton.icon(
+                            onPressed: _pickImage,
+                            icon: Icon(Icons.image_outlined,
+                                size: 18, color: p.rust),
+                            label: Text(context.t('item_pick_image'),
+                                style: AppText.body(13, color: p.rust)),
+                          ),
+                          if (_imageFile != null)
                             TextButton.icon(
                               onPressed: _removeImage,
                               icon: Icon(Icons.close,
@@ -326,9 +370,9 @@ class _ItemEditScreenState extends ConsumerState<ItemEditScreen> {
                               label: Text(context.t('item_image_remove'),
                                   style: AppText.body(13, color: p.inkMuted)),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
+                    ),
                     const SizedBox(height: 22),
                     SectionLabel(context.t('item_quantity')),
                     const SizedBox(height: 10),

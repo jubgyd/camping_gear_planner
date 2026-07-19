@@ -75,6 +75,27 @@ class ImageStore {
     }
   }
 
+  /// Copies a user-picked local image into the store as `<basename>.<ext>` and
+  /// returns the stored filename, or null if it isn't a recognised image, is
+  /// empty/too big, or can't be read. Never throws.
+  Future<String?> importFile(String sourcePath, {required String basename}) async {
+    final dir = _dirPath;
+    if (dir == null) return null;
+    try {
+      final src = File(sourcePath);
+      if (!await src.exists()) return null;
+      final len = await src.length();
+      if (len <= 0 || len > _maxBytes) return null;
+      final ext = _extFromPath(sourcePath);
+      if (ext == null) return null;
+      final filename = '$basename.$ext';
+      await src.copy('$dir${Platform.pathSeparator}$filename');
+      return filename;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Deletes a stored image, ignoring errors (e.g. already gone).
   Future<void> delete(String? filename) async {
     if (filename == null || filename.isEmpty) return;
@@ -97,13 +118,21 @@ class ImageStore {
     if (ct.contains('bmp')) return 'bmp';
 
     // Fall back to the URL's extension when the header is missing/generic.
-    final path = uri.path.toLowerCase();
-    for (final e in const ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp']) {
-      if (path.endsWith('.$e')) return e == 'jpeg' ? 'jpg' : e;
-    }
+    final fromPath = _extFromPath(uri.path);
+    if (fromPath != null) return fromPath;
     // If the server said it's an image but gave an unknown subtype, keep it as
     // jpg (Flutter's decoder sniffs the actual bytes anyway).
     if (ct.startsWith('image/')) return 'jpg';
+    return null;
+  }
+
+  /// Recognised image extension from a filename/path, normalised (jpeg→jpg),
+  /// or null if the extension isn't a supported image type.
+  String? _extFromPath(String path) {
+    final lower = path.toLowerCase();
+    for (final e in const ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp']) {
+      if (lower.endsWith('.$e')) return e == 'jpeg' ? 'jpg' : e;
+    }
     return null;
   }
 }

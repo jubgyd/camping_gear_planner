@@ -73,6 +73,8 @@
   "item_delete_confirm_body": "{name} will be removed. This cannot be undone.",
   "item_fetch_found": "✓ Price found and filled in below",
   "item_fetch_image": "✓ Product image added",
+  "item_pick_image": "Choose from computer",
+  "item_pick_error": "Couldn't use that image — try a JPG or PNG",
   "item_image_remove": "Remove image",
   "item_fetch_none": "No price found on this page — enter it manually",
   "item_fetch_error": "Couldn't reach that page — check the link or enter the price manually",
