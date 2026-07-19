@@ -1,7 +1,8 @@
 # Build the Flutter web release and upload it to the Hetzner server over scp.
-# Usage:  ./tool/deploy_web.ps1 -Server root@camp.example.tld -Dest /var/www/camp
+# Usage:  ./tool/deploy_web.ps1                       (uses the defaults below)
+#         ./tool/deploy_web.ps1 -Server user@host -Dest /var/www/camp
 param(
-    [Parameter(Mandatory = $true)][string]$Server,
+    [string]$Server = "root@camp.biergames.de",
     [string]$Dest = "/var/www/camp"
 )
 $flutter = "D:\Flutter\flutter\bin\flutter.bat"

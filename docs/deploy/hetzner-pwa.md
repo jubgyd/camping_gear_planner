@@ -3,12 +3,18 @@
 One-time server setup, then a one-command deploy from Windows. The app is a
 static site (Flutter web build); Caddy serves it over HTTPS behind Basic Auth.
 
-Replace `camp.example.tld` with your real subdomain and `<SERVER_IP>` with the
-CX23's public IP throughout.
+Replace `<SERVER_IP>` with the CX23's public IP throughout. The app is served at
+`https://camp.biergames.de`.
+
+> **If the server already runs a web server** (e.g. something already answering on
+> ports 80/443 for `biergames.de`), don't install a second one — add the
+> `camp.biergames.de { … }` block to that server's config instead. This runbook
+> assumes Caddy owns 80/443. Check with `sudo ss -ltnp '( sport = :80 or sport = :443 )'`
+> before installing.
 
 ## 1. DNS (one time)
-Create an `A` record: `camp.example.tld` → `<SERVER_IP>`. Wait until
-`nslookup camp.example.tld` returns the server IP before continuing (needed for
+Create an `A` record: `camp.biergames.de` → `<SERVER_IP>`. Wait until
+`nslookup camp.biergames.de` returns the server IP before continuing (needed for
 the Let's Encrypt HTTP challenge).
 
 ## 2. Firewall (one time)
@@ -44,7 +50,7 @@ Copy the `$2a$...` bcrypt hash it prints.
 ## 6. Configure Caddy (one time)
 Edit `/etc/caddy/Caddyfile` so it contains ONLY:
 ```
-camp.example.tld {
+camp.biergames.de {
     root * /var/www/camp
     encode gzip zstd
 
@@ -66,15 +72,20 @@ sudo systemctl status caddy   # confirm active; Caddy fetches HTTPS automaticall
 ```
 
 ## 7. Deploy the app (every update, from Windows)
-From the project folder:
+From the project folder (the script defaults to `root@camp.biergames.de` and
+`/var/www/camp`):
 ```
-./tool/deploy_web.ps1 -Server <user>@camp.example.tld -Dest /var/www/camp
+./tool/deploy_web.ps1
+```
+Override if your SSH user isn't `root`:
+```
+./tool/deploy_web.ps1 -Server youruser@camp.biergames.de
 ```
 (Uses OpenSSH `scp`, built into Windows 11. If key auth isn't set up, it prompts
 for the server password.)
 
 ## 8. Install on iPhone (one time)
-1. Open `https://camp.example.tld` in Safari; enter the Basic Auth user/password.
+1. Open `https://camp.biergames.de` in Safari; enter the Basic Auth user/password.
 2. Share button → **Add to Home Screen**.
 3. Launch from the home screen — it opens fullscreen with the mountain icon.
 
