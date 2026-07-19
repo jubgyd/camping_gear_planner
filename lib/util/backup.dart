@@ -27,14 +27,26 @@ Future<void> _saveToFile(
   required String doneMessage,
 }) async {
   final json = const JsonEncoder.withIndent('  ').convert(data.toJson());
+
+  // Web: file_picker's saveFile throws UnimplementedError, so hand the bytes to
+  // the browser (iOS share sheet / desktop download) ourselves.
+  if (kIsWeb) {
+    final saved = await downloadTextFile(fileName, json);
+    if (saved && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(doneMessage)));
+    }
+    return;
+  }
+
   final path = await FilePicker.platform.saveFile(
     dialogTitle: dialogTitle,
     fileName: fileName,
-    // Mobile/web write here directly; desktop returns a path and we write below.
+    // Mobile writes here directly; desktop returns a path and we write below.
     bytes: Uint8List.fromList(utf8.encode(json)),
   );
   if (path == null) return; // user cancelled the dialog
-  if (!kIsWeb && !isMobilePlatform) await saveTextFile(path, json);
+  if (!isMobilePlatform) await saveTextFile(path, json);
   if (context.mounted) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(doneMessage)));

@@ -8,3 +8,7 @@ Future<void> saveTextFile(String path, String text) =>
 Future<String> readTextFile(String path) => File(path).readAsString();
 
 bool get isMobilePlatform => Platform.isAndroid || Platform.isIOS;
+
+/// Web-only: native platforms save through the file_picker dialog instead.
+Future<bool> downloadTextFile(String fileName, String text) async =>
+    throw UnsupportedError('downloadTextFile is web-only');
